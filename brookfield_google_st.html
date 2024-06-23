@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Google Maps with GeoJSON</title>
+    <style>
+        #map {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .search-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 3px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search by node or str_id">
+        <button id="search-button">Search</button>
+    </div>
+
+    <script>
+        // Replace with your Google Maps API key
+        const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY';
+
+        // Initialize Google Maps
+        function initMap() {
+            const map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 28.127352, lng: 73.106920 }, // Replace with your initial center coordinates
+                zoom: 14, // Replace with your initial zoom level
+                mapTypeId: 'satellite' // Use satellite view
+            });
+
+            // Load GeoJSON data
+            fetch('https://subhash-mahla.github.io/brookfield_layout_geojson/brookfield_final_layout_P1.geojson') // Replace with your actual URL
+                .then(response => response.json())
+                .then(data => {
+                    map.data.addGeoJson(data);
+
+                    // Set click event listener
+                    map.data.addListener('click', (event) => {
+                        const properties = event.feature.getProperty('properties');
+                        const node = properties.node;
+                        const str_id = properties.str_id;
+
+                        const infoWindow = new google.maps.InfoWindow({
+                            content: `<strong>Node:</strong> ${node}<br /><strong>Str ID:</strong> ${str_id}`
+                        });
+
+                        infoWindow.setPosition(event.latLng);
+                        infoWindow.open(map);
+                    });
+
+                    // Search functionality
+                    document.getElementById('search-button').addEventListener('click', () => {
+                        const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
+
+                        map.data.setStyle(feature => {
+                            const node = feature.getProperty('properties').node.toLowerCase();
+                            const str_id = feature.getProperty('properties').str_id.toLowerCase();
+
+                            if (node === searchValue || str_id === searchValue) {
+                                return {
+                                    fillColor: '#ff0000', // Highlight color
+                                    fillOpacity: 0.6
+                                };
+                            } else {
+                                return {
+                                    fillColor: '#888888', // Default color
+                                    fillOpacity: 0.4
+                                };
+                            }
+                        });
+
+                        // Zoom to selected feature
+                        const bounds = new google.maps.LatLngBounds();
+                        map.data.forEach(feature => {
+                            const geometry = feature.getGeometry();
+                            if (geometry.getType() === 'Polygon') {
+                                geometry.getArray().forEach(path => {
+                                    path.getArray().forEach(latLng => {
+                                        bounds.extend(latLng);
+                                    });
+                                });
+                            } else if (geometry.getType() === 'MultiPolygon') {
+                                geometry.getArray().forEach(polygon => {
+                                    polygon.getArray().forEach(path => {
+                                        path.getArray().forEach(latLng => {
+                                            bounds.extend(latLng);
+                                        });
+                                    });
+                                });
+                            }
+                        });
+
+                        map.fitBounds(bounds);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading GeoJSON:', error);
+                });
+        }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&callback=initMap" async defer></script>
+</body>
+</html>
