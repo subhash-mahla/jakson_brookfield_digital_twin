@@ -39,7 +39,7 @@
         map.on('load', () => {
             map.addSource('shapefile-source', {
                 'type': 'geojson',
-                'data': 'https://subhash-mahla.github.io/brookfield_layout_geojson/brookfield_final_layout_P1.geojson' // Replace with your actual URL
+                'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1.geojson' // Replace with your actual URL
             });
 
             map.addLayer({
@@ -84,7 +84,7 @@
             document.getElementById('search-button').addEventListener('click', () => {
                 const searchValue = document.getElementById('search-input').value.trim();
                 if (searchValue) {
-                    fetch('https://subhash-mahla.github.io/brookfield_layout_geojson/brookfield_final_layout_P1.geojson') // Replace with your actual URL
+                    fetch('https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1.geojson') // Replace with your actual URL
                         .then(response => response.json())
                         .then(data => {
                             const features = data.features;
