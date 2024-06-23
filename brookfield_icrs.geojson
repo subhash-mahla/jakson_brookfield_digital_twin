@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "brookfield_icrs",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "icr": "ICR 1" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ 73.099155920313024, 28.116213160251693 ], [ 73.099386723676872, 28.116217515032144 ], [ 73.099395433237774, 28.115975389239129 ], [ 73.099148952664308, 28.115974518283039 ], [ 73.099148952664308, 28.115974518283039 ], [ 73.099155920313024, 28.116213160251693 ] ] ] ] } }
+]
+}

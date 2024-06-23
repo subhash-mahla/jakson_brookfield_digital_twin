@@ -8,7 +8,7 @@
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css' rel='stylesheet' />
     <style>
         body { margin: 0; padding: 0; }
-        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        #map { position: absolute; top: 0; bottom: 30px; width: 100%; } /* Adjusted bottom to make space for label */
         .search-container {
             position: absolute;
             top: 10px;
@@ -19,6 +19,17 @@
             border-radius: 3px;
             box-shadow: 0 0 5px rgba(0,0,0,0.3);
         }
+        .map-label {
+            position: absolute;
+            bottom: 10px; /* Adjust as needed */
+            left: 50%; /* Center horizontally */
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.305);
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.406);
+            z-index: 1000; /* Ensure it's above the map */
+        }
     </style>
 </head>
 <body>
@@ -26,6 +37,9 @@
     <div class="search-container">
         <input type="text" id="search-input" placeholder="Search by node or str_id" />
         <button id="search-button">Search</button>
+    </div>
+    <div class="map-label">
+        dev by Subhash Mahla
     </div>
     <script>
         mapboxgl.accessToken = 'pk.eyJ1Ijoic3ViaGFzaDU0IiwiYSI6ImNseGx1Y3JyMDAyMDcya3M2ZHpxdHFsN28ifQ.knRGnsgFrZMb-_gUb0dQdA';
@@ -38,6 +52,10 @@
 
         map.on('load', () => {
             map.addSource('shapefile-source', {
+                'type': 'geojson',
+                'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1.geojson' // Replace with your actual URL
+            });
+            map.addSource('shapefile-icr', {
                 'type': 'geojson',
                 'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1.geojson' // Replace with your actual URL
             });
@@ -82,13 +100,13 @@
             });
 
             document.getElementById('search-button').addEventListener('click', () => {
-                const searchValue = document.getElementById('search-input').value.trim();
+                const searchValue = document.getElementById('search-input').value.trim().toLowerCase(); // Convert input to lowercase
                 if (searchValue) {
-                    fetch('https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1.geojson') // Replace with your actual URL
+                    fetch('https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1.geojson')
                         .then(response => response.json())
                         .then(data => {
                             const features = data.features;
-                            const feature = features.find(f => f.properties.node === searchValue || f.properties.str_id === searchValue);
+                            const feature = features.find(f => f.properties.node.toLowerCase() === searchValue || f.properties.str_id.toLowerCase() === searchValue); // Compare lowercase values
 
                             if (feature) {
                                 const coordinates = feature.geometry.coordinates[0][0];
@@ -102,12 +120,17 @@
 
                                 map.setPaintProperty('shapefile-layer', 'fill-color', [
                                     'case',
-                                    ['==', ['get', 'node'], searchValue],
+                                    ['==', ['get', 'node'], feature.properties.node],
                                     '#ff0000',
-                                    ['==', ['get', 'str_id'], searchValue],
+                                    ['==', ['get', 'str_id'], feature.properties.str_id],
                                     '#ff0000',
                                     '#888888'
                                 ]);
+
+                                new mapboxgl.Popup()
+                                    .setLngLat(map.getCenter())
+                                    .setHTML(`<strong>Node:</strong> ${feature.properties.node}<br /><strong>Str ID:</strong> ${feature.properties.str_id}`)
+                                    .addTo(map);
                             } else {
                                 alert('No matching polygon found');
                             }
