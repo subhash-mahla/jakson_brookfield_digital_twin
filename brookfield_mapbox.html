@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Mapbox GL JS</title>
+    <title>Jakson Brookfield Digital Twin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css' rel='stylesheet' />
@@ -47,34 +47,45 @@
             container: 'map',
             style: 'mapbox://styles/subhash54/clxrgo01v00oh01qw33lcc44s', // replace with your Mapbox style URL
             center: [73.106920, 28.127352], // set the initial center coordinates
-            zoom: 14 // set the initial zoom level
+            zoom: 13 // set the initial zoom level
         });
 
         map.on('load', () => {
-            map.addSource('shapefile-source', {
+            map.addSource('shapefile-source_tables', {
                 'type': 'geojson',
                 'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1.geojson' // Replace with your actual URL
             });
             map.addSource('shapefile-icr', {
                 'type': 'geojson',
-                'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1.geojson' // Replace with your actual URL
+                'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs.geojson' // Replace with your actual URL
             });
 
             map.addLayer({
-                'id': 'shapefile-layer',
+                'id': 'shapefile-layer_tables',
                 'type': 'fill',
-                'source': 'shapefile-source',
+                'source': 'shapefile-source_tables',
                 'layout': {},
                 'paint': {
-                    'fill-color': '#888888',
-                    'fill-opacity': 0.4
+                    'fill-color': '#3498DB',
+                    'fill-opacity': 0.8
                 }
             });
 
             map.addLayer({
-                'id': 'outline',
+                'id': 'shapefile-layer_icr',
+                'type': 'fill',
+                'source': 'shapefile-icr',
+                'layout': {},
+                'paint': {
+                    'fill-color': '#E74C3C',
+                    'fill-opacity': 0.6
+                }
+            });
+
+            map.addLayer({
+                'id': 'outline_tables',
                 'type': 'line',
-                'source': 'shapefile-source',
+                'source': 'shapefile-source_tables',
                 'layout': {},
                 'paint': {
                     'line-color': '#000',
@@ -82,20 +93,49 @@
                 }
             });
 
-            map.on('click', 'shapefile-layer', (e) => {
+            map.addLayer({
+                'id': 'outline_icr',
+                'type': 'line',
+                'source': 'shapefile-icr',
+                'layout': {},
+                'paint': {
+                    'line-color': '#000',
+                    'line-width': 1
+                }
+            });
+
+            map.on('click', 'shapefile-layer_tables', (e) => {
                 const coordinates = e.lngLat;
                 const properties = e.features[0].properties;
+                // map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                //     'case',
+                //     ['==', ['get', 'node'], e.features[0].properties.node],
+                //     '#ff0000',
+                //     ['==', ['get', 'str_id'], e.features[0].properties.str_id],
+                //     '#ff0000',
+                //     '#3498DB'
+                // ]);
                 new mapboxgl.Popup()
                     .setLngLat(coordinates)
                     .setHTML(`<strong>Node:</strong> ${properties.node}<br /><strong>Str ID:</strong> ${properties.str_id}`)
                     .addTo(map);
             });
 
-            map.on('mouseenter', 'shapefile-layer', () => {
+            map.on('click', 'shapefile-layer_icr', (e) => {
+                const coordinates = e.lngLat;
+                const properties = e.features[0].properties;
+                
+                new mapboxgl.Popup()
+                    .setLngLat(coordinates)
+                    .setHTML(`<strong>ICR : </strong> ${properties.icr}`)
+                    .addTo(map);
+            });
+
+            map.on('mouseenter', 'shapefile-layer_tables', () => {
                 map.getCanvas().style.cursor = 'pointer';
             });
 
-            map.on('mouseleave', 'shapefile-layer', () => {
+            map.on('mouseleave', 'shapefile-layer_tables', () => {
                 map.getCanvas().style.cursor = '';
             });
 
@@ -118,17 +158,17 @@
                                     padding: 20
                                 });
 
-                                map.setPaintProperty('shapefile-layer', 'fill-color', [
+                                map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
                                     'case',
                                     ['==', ['get', 'node'], feature.properties.node],
                                     '#ff0000',
                                     ['==', ['get', 'str_id'], feature.properties.str_id],
                                     '#ff0000',
-                                    '#888888'
+                                    '#3498DB'
                                 ]);
 
                                 new mapboxgl.Popup()
-                                    .setLngLat(map.getCenter())
+                                    .setLngLat(coordinates[0], coordinates[1])
                                     .setHTML(`<strong>Node:</strong> ${feature.properties.node}<br /><strong>Str ID:</strong> ${feature.properties.str_id}`)
                                     .addTo(map);
                             } else {
