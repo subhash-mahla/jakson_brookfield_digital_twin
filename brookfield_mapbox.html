@@ -55,6 +55,10 @@
                 'type': 'geojson',
                 'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1.geojson' // Replace with your actual URL
             });
+            map.addSource('shapefile-icr', {
+                'type': 'geojson',
+                'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs.geojson' // Replace with your actual URL
+            });
 
             map.addLayer({
                 'id': 'shapefile-layer_tables',
@@ -62,7 +66,7 @@
                 'source': 'shapefile-source_tables',
                 'layout': {},
                 'paint': {
-                    'fill-color': '#3498DB',
+                    'fill-color': '#3a95dc',
                     'fill-opacity': 0.8
                 }
             });
@@ -85,6 +89,14 @@
                     .setLngLat(coordinates)
                     .setHTML(`<strong>Node ID:</strong> ${properties.node_id}<br /><strong>Str ID:</strong> ${properties.str_id}`)
                     .addTo(map);
+                    map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                                    'case',
+                                    ['==', ['get', 'node_id'], properties.node_id],
+                                    '#ff0000',
+                                    ['==', ['get', 'str_id'], properties.str_id],
+                                    '#ff0000',
+                                    '#3a95dc'
+                                ]);
             });
 
             map.on('mouseenter', 'shapefile-layer_tables', () => {
@@ -95,6 +107,36 @@
                 map.getCanvas().style.cursor = '';
             });
 
+            map.addLayer({
+                'id': 'shapefile-layer_icr',
+                'type': 'fill',
+                'source': 'shapefile-icr',
+                'layout': {},
+                'paint': {
+                    'fill-color': '#E74C3C',
+                    'fill-opacity': 0.6
+                }
+            });
+            map.addLayer({
+                'id': 'outline_icr',
+                'type': 'line',
+                'source': 'shapefile-icr',
+                'layout': {},
+                'paint': {
+                    'line-color': '#000',
+                    'line-width': 1
+                }
+            });
+
+            map.on('click', 'shapefile-layer_icr', (e) => {
+                const coordinates = e.lngLat;
+                const properties = e.features[0].properties;
+                new mapboxgl.Popup()
+                    .setLngLat(coordinates)
+                    .setHTML(`<br /><strong>ICR :</strong> ${properties.icr}`)
+                    .addTo(map);
+            });
+
             document.getElementById('search-button').addEventListener('click', () => {
                 const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
                 if (searchValue) {
@@ -102,14 +144,18 @@
                         .then(response => response.json())
                         .then(data => {
                             const features = data.features;
-                            const feature = features.find(f => f.properties.node_id.toLowerCase() === searchValue || f.properties.str_id.toLowerCase() === searchValue);
+                            const feature = features.find(f => {
+                                const nodeId = f.properties.node_id ? f.properties.node_id.toLowerCase() : '';
+                                const strId = f.properties.str_id ? f.properties.str_id.toLowerCase() : '';
+                                return nodeId === searchValue || strId === searchValue;
+                            });
                             console.log(`Searching for: ${searchValue}`);
                             if (feature) {
                                 console.log(`Feature found: ${JSON.stringify(feature.properties)}`);
                                 const coordinates = feature.geometry.coordinates[0][0][0];
-                                const bounds = coordinates.reduce((bounds, coord) => {
+                                const bounds = feature.geometry.coordinates[0][0].reduce((bounds, coord) => {
                                     return bounds.extend(coord);
-                                }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+                                }, new mapboxgl.LngLatBounds(coordinates, coordinates));
 
                                 map.fitBounds(bounds, {
                                     padding: 20
@@ -121,7 +167,7 @@
                                     '#ff0000',
                                     ['==', ['get', 'str_id'], feature.properties.str_id],
                                     '#ff0000',
-                                    '#3498DB'
+                                    '#3a95dc'
                                 ]);
 
                                 new mapboxgl.Popup()
@@ -131,14 +177,14 @@
                                 console.log('Match found and highlighted');
                             } else {
                                 console.log('No matching polygon found');
-                                alert('No matching polygon found');
+                                alert('No matching table found');
                             }
                         })
                         .catch(err => {
                             console.error('Error fetching GeoJSON data:', err);
                         });
                 } else {
-                    alert('Please enter a search term');
+                    alert('Please enter a valid id');
                 }
             });
         });
