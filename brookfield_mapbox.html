@@ -35,7 +35,7 @@
 <body>
     <div id="map"></div>
     <div class="search-container">
-        <input type="text" id="search-input" placeholder="Search by node or str_id" />
+        <input type="text" id="search-input" placeholder="Search by node_id or str_id" />
         <button id="search-button">Search</button>
     </div>
     <div class="map-label">
@@ -55,10 +55,6 @@
                 'type': 'geojson',
                 'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1.geojson' // Replace with your actual URL
             });
-            map.addSource('shapefile-icr', {
-                'type': 'geojson',
-                'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs.geojson' // Replace with your actual URL
-            });
 
             map.addLayer({
                 'id': 'shapefile-layer_tables',
@@ -68,17 +64,6 @@
                 'paint': {
                     'fill-color': '#3498DB',
                     'fill-opacity': 0.8
-                }
-            });
-
-            map.addLayer({
-                'id': 'shapefile-layer_icr',
-                'type': 'fill',
-                'source': 'shapefile-icr',
-                'layout': {},
-                'paint': {
-                    'fill-color': '#E74C3C',
-                    'fill-opacity': 0.6
                 }
             });
 
@@ -93,41 +78,12 @@
                 }
             });
 
-            map.addLayer({
-                'id': 'outline_icr',
-                'type': 'line',
-                'source': 'shapefile-icr',
-                'layout': {},
-                'paint': {
-                    'line-color': '#000',
-                    'line-width': 1
-                }
-            });
-
             map.on('click', 'shapefile-layer_tables', (e) => {
                 const coordinates = e.lngLat;
                 const properties = e.features[0].properties;
-                // map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
-                //     'case',
-                //     ['==', ['get', 'node'], e.features[0].properties.node],
-                //     '#ff0000',
-                //     ['==', ['get', 'str_id'], e.features[0].properties.str_id],
-                //     '#ff0000',
-                //     '#3498DB'
-                // ]);
                 new mapboxgl.Popup()
                     .setLngLat(coordinates)
-                    .setHTML(`<strong>Node:</strong> ${properties.node}<br /><strong>Str ID:</strong> ${properties.str_id}`)
-                    .addTo(map);
-            });
-
-            map.on('click', 'shapefile-layer_icr', (e) => {
-                const coordinates = e.lngLat;
-                const properties = e.features[0].properties;
-                
-                new mapboxgl.Popup()
-                    .setLngLat(coordinates)
-                    .setHTML(`<strong>ICR : </strong> ${properties.icr}`)
+                    .setHTML(`<strong>Node ID:</strong> ${properties.node_id}<br /><strong>Str ID:</strong> ${properties.str_id}`)
                     .addTo(map);
             });
 
@@ -140,16 +96,17 @@
             });
 
             document.getElementById('search-button').addEventListener('click', () => {
-                const searchValue = document.getElementById('search-input').value.trim().toLowerCase(); // Convert input to lowercase
+                const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
                 if (searchValue) {
                     fetch('https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1.geojson')
                         .then(response => response.json())
                         .then(data => {
                             const features = data.features;
-                            const feature = features.find(f => f.properties.node.toLowerCase() === searchValue || f.properties.str_id.toLowerCase() === searchValue); // Compare lowercase values
-
+                            const feature = features.find(f => f.properties.node_id.toLowerCase() === searchValue || f.properties.str_id.toLowerCase() === searchValue);
+                            console.log(`Searching for: ${searchValue}`);
                             if (feature) {
-                                const coordinates = feature.geometry.coordinates[0][0];
+                                console.log(`Feature found: ${JSON.stringify(feature.properties)}`);
+                                const coordinates = feature.geometry.coordinates[0][0][0];
                                 const bounds = coordinates.reduce((bounds, coord) => {
                                     return bounds.extend(coord);
                                 }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
@@ -160,7 +117,7 @@
 
                                 map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
                                     'case',
-                                    ['==', ['get', 'node'], feature.properties.node],
+                                    ['==', ['get', 'node_id'], feature.properties.node_id],
                                     '#ff0000',
                                     ['==', ['get', 'str_id'], feature.properties.str_id],
                                     '#ff0000',
@@ -168,16 +125,20 @@
                                 ]);
 
                                 new mapboxgl.Popup()
-                                    .setLngLat(coordinates[0], coordinates[1])
-                                    .setHTML(`<strong>Node:</strong> ${feature.properties.node}<br /><strong>Str ID:</strong> ${feature.properties.str_id}`)
+                                    .setLngLat(coordinates)
+                                    .setHTML(`<strong>Node ID:</strong> ${feature.properties.node_id}<br /><strong>Str ID:</strong> ${feature.properties.str_id}`)
                                     .addTo(map);
+                                console.log('Match found and highlighted');
                             } else {
+                                console.log('No matching polygon found');
                                 alert('No matching polygon found');
                             }
                         })
                         .catch(err => {
                             console.error('Error fetching GeoJSON data:', err);
                         });
+                } else {
+                    alert('Please enter a search term');
                 }
             });
         });
