@@ -4,6 +4,8 @@ import pandas as pd
 import itertools
 import PySimpleGUI as sg
 import pretty_errors
+import id_genrator
+
 
 
 # import geopandas as gpd
@@ -109,7 +111,54 @@ def create_subdivided_polygons(input_shapefile, row_count, column_count):
 
     return output_shapefile
 
-wnd_layout = [[sg.Button('Point to Str', key='-POINT_TO_STR-', enable_events=True, size=20), sg.Button('Str to Md', key = '-STR_TO_MD-', enable_events=True, size=20)]]
+
+
+def assign_column_counts_to_polygons(shp_file_path, min_distance):
+    """
+    Assign column counts to every polygon in the shapefile based on the x-axis and a minimum distance.
+    
+    Parameters:
+    shp_file_path (str): The path to the shapefile.
+    min_distance (float): The minimum distance between two columns.
+    
+    Returns:
+    str: The path to the modified shapefile.
+    """
+    # Read the shapefile
+    gdf = gpd.read_file(shp_file_path)
+    
+    # Sort polygons by their centroid x-coordinate
+    gdf['centroid_x'] = gdf.geometry.centroid.x
+    gdf = gdf.sort_values(by='centroid_x').reset_index(drop=True)
+    
+    # Initialize the first column
+    gdf['col'] = 1
+    current_col = 1
+    previous_x = gdf.loc[0, 'centroid_x']
+    
+    # Assign column numbers based on the minimum distance
+    for i in range(1, len(gdf)):
+        current_x = gdf.loc[i, 'centroid_x']
+        if (current_x - previous_x) > min_distance:
+            current_col += 1
+        gdf.at[i, 'col'] = current_col
+        previous_x = current_x
+    
+    # Drop the temporary centroid_x column
+    gdf = gdf.drop(columns=['centroid_x'])
+    
+    # Save the modified shapefile
+    output_file_path = shp_file_path.replace('.shp', '_with_counts.shp')
+    gdf.to_file(output_file_path)
+    print(f'Total col {current_col}')
+    return output_file_path
+
+
+
+
+
+wnd_layout = [[sg.Button('Point to Str', key='-POINT_TO_STR-', enable_events=True, size=20), sg.Button('Str to Md', key = '-STR_TO_MD-', enable_events=True, size=20)],
+              [sg.Button('Assign IDs', key='-ASSIG_IDS-', enable_events=True, size=20), sg.Button('Assign col', key='-ASSIG_COLS-', enable_events=True, size=20)]]
 
 Main_Wnd = sg.Window("Digital Twin Mapping", layout=wnd_layout)
 
@@ -136,6 +185,17 @@ while True:
             column_count = 2  # Number of columns to divide each parent polygon
             output_shapefile = create_subdivided_polygons(input_shapefile, row_count, column_count)
             print("New polygons created and saved to:", output_shapefile)
+    if event == '-ASSIG_IDS-':
+        input_shapefile = sg.popup_get_file('Select poly file to assign ids')
+        output_file_path = id_genrator.assign_unique_id_to_polygons(shp_file_path=input_shapefile)
+        print(f"Modified shapefile saved to: {output_file_path}")
+    if event == '-ASSIG_COLS-':
+        shp_file_path = sg.popup_get_file('Select poly file to assign column')
+        start_col = 1
+        min_distance = 0.00001  # Adjust this value as needed
+        output_file_path = assign_column_counts_to_polygons(shp_file_path, min_distance=min_distance)
+        print(f"Modified shapefile saved to: {output_file_path}")
+
 
 
 
