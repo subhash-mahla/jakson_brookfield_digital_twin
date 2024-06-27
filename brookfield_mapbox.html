@@ -53,7 +53,7 @@
         map.on('load', () => {
             map.addSource('shapefile-source_tables', {
                 'type': 'geojson',
-                'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V4.geojson' // Replace with your actual URL
+                'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V5.geojson' // Replace with your actual URL
             });
             map.addSource('shapefile-icr', {
                 'type': 'geojson',
@@ -91,8 +91,8 @@
                     .addTo(map);
                     map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
                                     'case',
-                                    ['==', ['get', 'node_id'], properties.node_id],
-                                    '#ff0000',
+                                    // ['==', ['get', 'node_id'], properties.node_id],
+                                    // '#ff0000',
                                     ['==', ['get', 'str_id'], properties.str_id],
                                     '#ff0000',
                                     '#3a95dc'
@@ -117,6 +117,7 @@
                     'fill-opacity': 0.6
                 }
             });
+
             map.addLayer({
                 'id': 'outline_icr',
                 'type': 'line',
@@ -127,6 +128,37 @@
                     'line-width': 1
                 }
             });
+
+            // Add a symbol layer for text labels
+            map.addLayer({
+                'id': 'label-icr',
+                'type': 'symbol',
+                'source': 'shapefile-icr',
+                'layout': {
+                    'text-field': [
+                                    'format',
+                                    ['case',
+                                        ['==', ['get', 'icr'], 'MCR'], 
+                                        '', 
+                                        'ICR '
+                                    ],
+                                    {},
+                                    ['get', 'icr'],
+                                    {}
+                                ],
+                    'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                    'text-size': 12,
+                    'text-offset': [0, 0.6], // Adjust the text position
+                    'text-anchor': 'top'
+                },
+                'paint': {
+                    'text-color': '#F84C40', // Inner text color (white)
+                    'text-halo-color': '#000000', // Outer line color (black)
+                    'text-halo-width': 1, // Width of the outer line
+                    'text-halo-blur': 0 // Halo blur
+                }
+            });
+
 
             map.on('click', 'shapefile-layer_icr', (e) => {
                 const coordinates = e.lngLat;
@@ -140,7 +172,7 @@
             document.getElementById('search-button').addEventListener('click', () => {
                 const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
                 if (searchValue) {
-                    fetch('https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V4.geojson')
+                    fetch('https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V5.geojson')
                         .then(response => response.json())
                         .then(data => {
                             const features = data.features;
@@ -163,8 +195,8 @@
 
                                 map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
                                     'case',
-                                    ['==', ['get', 'node_id'], feature.properties.node_id],
-                                    '#ff0000',
+                                    // ['==', ['get', 'node_id'], feature.properties.node_id],
+                                    // '#ff0000',
                                     ['==', ['get', 'str_id'], feature.properties.str_id],
                                     '#ff0000',
                                     '#3a95dc'
