@@ -44,6 +44,27 @@
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
             cursor: pointer;
         }
+        .round-marker {
+            width: 10px;
+            height: 10px;
+            background-color: blue;
+            border: 2px solid white;
+            border-radius: 50%;
+        }
+        
+        .ICR1 { background-color: #ffcccc; }
+        .ICR2 { background-color: #ccffcc; }
+        .ICR3 { background-color: #ccccff; }
+        .ICR4 { background-color: #ffffcc; }
+        .ICR5 { background-color: #ffcc99; }
+        .ICR6 { background-color: #cc99ff; }
+        .ICR7 { background-color: #99ffcc; }
+        .ICR8 { background-color: #99ccff; }
+        .ICR9 { background-color: #ff99cc; }
+        .ICR10 { background-color: #ccff99; }
+        .ICR11 { background-color: #cccc99; }
+        .ICR12 { background-color: #cc99cc; }
+        .ICR13 { background-color: #99ff99; }
     </style>
 </head>
 <body>
@@ -58,6 +79,13 @@
     <div class="location-icon" id="location-icon">
         📍
     </div>
+    <div class="tracking-switch">
+        <!-- <label for="tracking-toggle">Live Tracking</label> -->
+        <label class="switch">
+            <input type="checkbox" id="tracking-toggle">
+            <span class="slider"></span>
+        </label>
+    </div>
     <script>
         mapboxgl.accessToken = 'pk.eyJ1Ijoic3ViaGFzaDU0IiwiYSI6ImNseGx1Y3JyMDAyMDcya3M2ZHpxdHFsN28ifQ.knRGnsgFrZMb-_gUb0dQdA';
         const map = new mapboxgl.Map({
@@ -69,28 +97,49 @@
 
         // Add live location tracking
         let userMarker;
+        let watchId;
+        let userInteracted = false;
 
         function updateUserLocation(position) {
             const userLocation = [position.coords.longitude, position.coords.latitude];
 
             if (!userMarker) {
-                userMarker = new mapboxgl.Marker()
+                userMarker = new mapboxgl.Marker({ element: createRoundMarker() })
                     .setLngLat(userLocation)
                     .addTo(map);
             } else {
                 userMarker.setLngLat(userLocation);
             }
+
+            if (!userInteracted) {
+                map.flyTo({
+                    center: userLocation,
+                    zoom: 15
+                });
+            }
+        }
+
+        function createRoundMarker() {
+            const marker = document.createElement('div');
+            marker.className = 'round-marker';
+            return marker;
         }
 
         function handleLocationError(error) {
             console.error('Error retrieving location:', error);
         }
 
-        function trackLocation() {
+        function startTracking() {
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(updateUserLocation, handleLocationError, { enableHighAccuracy: true });
+                watchId = navigator.geolocation.watchPosition(updateUserLocation, handleLocationError, { enableHighAccuracy: true });
             } else {
                 console.error('Geolocation is not supported by this browser.');
+            }
+        }
+
+        function stopTracking() {
+            if (navigator.geolocation && watchId) {
+                navigator.geolocation.clearWatch(watchId);
             }
         }
 
@@ -98,19 +147,25 @@
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
                     updateUserLocation(position);
-                    const userLocation = [position.coords.longitude, position.coords.latitude];
-                    map.flyTo({
-                        center: userLocation,
-                        zoom: 15
-                    });
+                    userInteracted = false; // reset user interaction
+                    startTracking();
                 }, handleLocationError, { enableHighAccuracy: true });
             } else {
                 console.error('Geolocation is not supported by this browser.');
             }
         });
 
-        // Initialize location tracking without zooming in
-        trackLocation();
+        // Detect user interactions with the map
+        map.on('dragstart', () => {
+            userInteracted = true;
+        });
+
+        map.on('zoomstart', () => {
+            userInteracted = true;
+        });
+
+        // Initialize map without live tracking
+        stopTracking();
         // if (navigator.geolocation) {
         //     navigator.geolocation.watchPosition(position => {
         //         const userLocation = [position.coords.longitude, position.coords.latitude];
