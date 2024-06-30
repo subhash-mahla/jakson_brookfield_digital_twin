@@ -50,6 +50,37 @@
             zoom: 13 // set the initial zoom level
         });
 
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(position => {
+                const userLocation = [position.coords.longitude, position.coords.latitude];
+
+                // Add a marker for the user's location
+                const userMarker = new mapboxgl.Marker()
+                    .setLngLat(userLocation)
+                    .addTo(map);
+
+                // Center the map on the user's location
+                map.flyTo({
+                    center: userLocation,
+                    zoom: 15
+                });
+
+                // Update the marker position as the user's location changes
+                navigator.geolocation.watchPosition(position => {
+                    const newUserLocation = [position.coords.longitude, position.coords.latitude];
+                    userMarker.setLngLat(newUserLocation);
+                    map.flyTo({
+                        center: newUserLocation,
+                        zoom: 15
+                    });
+                });
+            }, error => {
+                console.error('Error retrieving location:', error);
+            });
+        } else {
+            console.error('Geolocation is not supported by this browser.');
+        }
+
         map.on('load', () => {
             map.addSource('shapefile-source_tables', {
                 'type': 'geojson',
