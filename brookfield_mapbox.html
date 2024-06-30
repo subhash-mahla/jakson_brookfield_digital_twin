@@ -8,27 +8,41 @@
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css' rel='stylesheet' />
     <style>
         body { margin: 0; padding: 0; }
-        #map { position: absolute; top: 0; bottom: 30px; width: 100%; } /* Adjusted bottom to make space for label */
+        #map { position: absolute; top: 0; bottom: 30px; width: 100%; }
         .search-container {
             position: absolute;
             top: 10px;
             left: 10px;
             z-index: 1;
-            background: rgba(255, 255, 255, 0.266);
-            padding: 3px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
             border-radius: 3px;
             box-shadow: 0 0 5px rgba(0,0,0,0.3);
         }
+        .dropdown-container {
+            margin-bottom: 10px;
+        }
         .map-label {
             position: absolute;
-            bottom: 10px; /* Adjust as needed */
-            left: 50%; /* Center horizontally */
+            bottom: 10px;
+            left: 50%;
             transform: translateX(-50%);
             background-color: rgba(255, 255, 255, 0.305);
             padding: 5px 10px;
             border-radius: 5px;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.406);
-            z-index: 1000; /* Ensure it's above the map */
+            z-index: 1000;
+        }
+        .location-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
         }
     </style>
 </head>
@@ -41,6 +55,9 @@
     <div class="map-label">
         dev by Subhash Mahla
     </div>
+    <div class="location-icon" id="location-icon">
+        📍
+    </div>
     <script>
         mapboxgl.accessToken = 'pk.eyJ1Ijoic3ViaGFzaDU0IiwiYSI6ImNseGx1Y3JyMDAyMDcya3M2ZHpxdHFsN28ifQ.knRGnsgFrZMb-_gUb0dQdA';
         const map = new mapboxgl.Map({
@@ -50,36 +67,80 @@
             zoom: 13 // set the initial zoom level
         });
 
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(position => {
-                const userLocation = [position.coords.longitude, position.coords.latitude];
+        // Add live location tracking
+        let userMarker;
 
-                // Add a marker for the user's location
-                const userMarker = new mapboxgl.Marker()
+        function updateUserLocation(position) {
+            const userLocation = [position.coords.longitude, position.coords.latitude];
+
+            if (!userMarker) {
+                userMarker = new mapboxgl.Marker()
                     .setLngLat(userLocation)
                     .addTo(map);
+            } else {
+                userMarker.setLngLat(userLocation);
+            }
+        }
 
-                // Center the map on the user's location
-                map.flyTo({
-                    center: userLocation,
-                    zoom: 15
-                });
+        function handleLocationError(error) {
+            console.error('Error retrieving location:', error);
+        }
 
-                // Update the marker position as the user's location changes
-                navigator.geolocation.watchPosition(position => {
-                    const newUserLocation = [position.coords.longitude, position.coords.latitude];
-                    userMarker.setLngLat(newUserLocation);
+        function trackLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(updateUserLocation, handleLocationError, { enableHighAccuracy: true });
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+            }
+        }
+
+        document.getElementById('location-icon').addEventListener('click', () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    updateUserLocation(position);
+                    const userLocation = [position.coords.longitude, position.coords.latitude];
                     map.flyTo({
-                        center: newUserLocation,
+                        center: userLocation,
                         zoom: 15
                     });
-                });
-            }, error => {
-                console.error('Error retrieving location:', error);
-            });
-        } else {
-            console.error('Geolocation is not supported by this browser.');
-        }
+                }, handleLocationError, { enableHighAccuracy: true });
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+            }
+        });
+
+        // Initialize location tracking without zooming in
+        trackLocation();
+        // if (navigator.geolocation) {
+        //     navigator.geolocation.watchPosition(position => {
+        //         const userLocation = [position.coords.longitude, position.coords.latitude];
+
+        //         // Add a marker for the user's location
+        //         const userMarker = new mapboxgl.Marker()
+        //             .setLngLat(userLocation)
+        //             .addTo(map);
+
+        //         // Center the map on the user's location
+        //         map.flyTo({
+        //             center: userLocation,
+        //             zoom: 15
+        //         });
+
+        //         // Update the marker position as the user's location changes
+        //         navigator.geolocation.watchPosition(position => {
+        //             const newUserLocation = [position.coords.longitude, position.coords.latitude];
+        //             userMarker.setLngLat(newUserLocation);
+        //             map.flyTo({
+        //                 center: newUserLocation,
+        //                 zoom: 15
+        //             });
+        //         });
+        //     }, error => {
+        //         console.error('Error retrieving location:', error);
+        //     });
+        // } else {
+        //     console.error('Geolocation is not supported by this browser.');
+        // }
 
         map.on('load', () => {
             map.addSource('shapefile-source_tables', {
