@@ -200,7 +200,7 @@
         map.on('load', () => {
             map.addSource('shapefile-source_tables', {
                 'type': 'geojson',
-                'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V5.geojson' // Replace with your actual URL
+                'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V6.geojson' // Replace with your actual URL
             });
             map.addSource('shapefile-icr', {
                 'type': 'geojson',
@@ -234,7 +234,7 @@
                 const properties = e.features[0].properties;
                 new mapboxgl.Popup()
                     .setLngLat(coordinates)
-                    .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID:</strong> ${properties.node_id}`)
+                    .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong> ${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
                     .addTo(map);
                     map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
                                     'case',
@@ -319,7 +319,7 @@
             document.getElementById('search-button').addEventListener('click', () => {
                 const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
                 if (searchValue) {
-                    fetch('https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V5.geojson')
+                    fetch('https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V6.geojson')
                         .then(response => response.json())
                         .then(data => {
                             const features = data.features;
@@ -352,7 +352,8 @@
                                 new mapboxgl.Popup()
                                     .setLngLat(coordinates)
                                     //.setHTML(`<strong>Node ID:</strong> ${feature.properties.node_id}<br /><strong>Str ID:</strong> ${feature.properties.str_id}`)
-                                    .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID:</strong> ${properties.node_id}`)
+                                    // .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID:</strong> ${properties.node_id}`)
+                                    .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong> ${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
                                     .addTo(map);
                                 console.log('Match found and highlighted');
                             } else {
