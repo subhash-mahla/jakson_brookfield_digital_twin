@@ -205,7 +205,7 @@
                 const properties = e.features[0].properties;
                 new mapboxgl.Popup()
                     .setLngLat(coordinates)
-                    .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong> ${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
+                    .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
                     .addTo(map);
                     map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
                                     'case',
@@ -352,7 +352,7 @@
                                 const properties = feature.properties;
                                 new mapboxgl.Popup()
                                     .setLngLat(coordinates)
-                                    .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong> ${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
+                                    .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
                                     .addTo(map);
                                 console.log('Match found and highlighted');
                             } else {
