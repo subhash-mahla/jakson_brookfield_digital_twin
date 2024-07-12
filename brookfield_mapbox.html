@@ -15,7 +15,7 @@
             left: 10px;
             z-index: 1;
             background: rgba(255, 255, 255, 0.9);
-            padding: 10px;
+            padding: 5px;
             border-radius: 3px;
             box-shadow: 0 0 5px rgba(0,0,0,0.3);
         }
@@ -70,7 +70,7 @@
 <body>
     <div id="map"></div>
     <div class="search-container">
-        <input type="text" id="search-input" placeholder="Search by node_id or str_id" />
+        <input type="text" id="search-input" placeholder="Search by node, str_id, row-col" />
         <button id="search-button">Search</button>
     </div>
     <div class="map-label">
@@ -166,41 +166,12 @@
 
         // Initialize map without live tracking
         stopTracking();
-        // if (navigator.geolocation) {
-        //     navigator.geolocation.watchPosition(position => {
-        //         const userLocation = [position.coords.longitude, position.coords.latitude];
 
-        //         // Add a marker for the user's location
-        //         const userMarker = new mapboxgl.Marker()
-        //             .setLngLat(userLocation)
-        //             .addTo(map);
-
-        //         // Center the map on the user's location
-        //         map.flyTo({
-        //             center: userLocation,
-        //             zoom: 15
-        //         });
-
-        //         // Update the marker position as the user's location changes
-        //         navigator.geolocation.watchPosition(position => {
-        //             const newUserLocation = [position.coords.longitude, position.coords.latitude];
-        //             userMarker.setLngLat(newUserLocation);
-        //             map.flyTo({
-        //                 center: newUserLocation,
-        //                 zoom: 15
-        //             });
-        //         });
-        //     }, error => {
-        //         console.error('Error retrieving location:', error);
-        //     });
-        // } else {
-        //     console.error('Geolocation is not supported by this browser.');
-        // }
 
         map.on('load', () => {
             map.addSource('shapefile-source_tables', {
                 'type': 'geojson',
-                'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V6.geojson' // Replace with your actual URL
+                'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V7.geojson' // Replace with your actual URL
             });
             map.addSource('shapefile-icr', {
                 'type': 'geojson',
@@ -319,14 +290,28 @@
             document.getElementById('search-button').addEventListener('click', () => {
                 const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
                 if (searchValue) {
-                    fetch('https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V6.geojson') // Update with correct path
+                    fetch('https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V7.geojson') // Update with correct path
                         .then(response => response.json())
                         .then(data => {
                             const features = data.features;
+                            var search_attri = "";
                             const feature = features.find(f => {
                                 const nodeId = f.properties.node_id !== undefined ? String(f.properties.node_id).toLowerCase() : '';
                                 const strId = f.properties.str_id !== undefined ? String(f.properties.str_id).toLowerCase() : '';
-                                return nodeId === searchValue || strId === searchValue;
+                                const rowcolId = f.properties.row_col !== undefined ? String(f.properties.row_col).toLowerCase() : '';
+                                if (nodeId === searchValue){
+                                    search_attri = "nodeid";
+                                    return true;
+                                }
+                                if (strId === searchValue){
+                                    search_attri = "strid";
+                                    return true;
+                                }
+                                if (rowcolId === searchValue){
+                                    search_attri = "rcid";
+                                    return true;
+                                }
+                                // return nodeId === searchValue || strId === searchValue || rowcolId === searchValue;
                             });
                             console.log(`Searching for: ${searchValue}`);
                             if (feature) {
@@ -339,15 +324,31 @@
                                 map.fitBounds(bounds, {
                                     padding: 20
                                 });
-
+                                if (search_attri === "strid"){
+                                map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                                    'case',
+                                    // ['==', ['get', 'node_id'], feature.properties.node_id],
+                                    // '#ff0000',
+                                    ['==', ['get', 'str_id'], feature.properties.str_id],
+                                    '#ff0000',
+                                    // ['==', ['get', 'row_col'], feature.properties.row_col],
+                                    // '#ff0000',
+                                    '#3a95dc'
+                                ]);}
+                                if (search_attri === "nodeid"){
                                 map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
                                     'case',
                                     ['==', ['get', 'node_id'], feature.properties.node_id],
                                     '#ff0000',
-                                    ['==', ['get', 'str_id'], feature.properties.str_id],
+                                    '#3a95dc'
+                                ]);}
+                                if (search_attri === "rcid"){
+                                map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                                    'case',
+                                    ['==', ['get', 'row_col'], feature.properties.row_col],
                                     '#ff0000',
                                     '#3a95dc'
-                                ]);
+                                ]);}
                                 const properties = feature.properties;
                                 new mapboxgl.Popup()
                                     .setLngLat(coordinates)
