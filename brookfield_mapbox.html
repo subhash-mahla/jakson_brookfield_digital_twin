@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css' rel='stylesheet' />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 30px; width: 100%; }
@@ -19,6 +20,7 @@
             border-radius: 3px;
             box-shadow: 0 0 5px rgba(0,0,0,0.3);
         }
+        
         .dropdown-container {
             margin-bottom: 10px;
         }
@@ -71,28 +73,32 @@
     <div id="map"></div>
     <div class="search-container">
         <input type="text" id="search-input" placeholder="Search by node, str_id, row-col" />
-        <button id="search-button">Search</button>
+        <!-- <button id="search-button">Search</button> -->
+        <button id="search-button" type="submit"><i class="fa fa-search"></i></button>
     </div>
     <div class="map-label">
-        dev by Subhash Mahla
+        dev. by Subhash Mahla
     </div>
     <div class="location-icon" id="location-icon">
         📍
+        <!-- <i class="fa-solid fa-location-dot fa-bounce"></i> -->
     </div>
-    <div class="tracking-switch">
-        <!-- <label for="tracking-toggle">Live Tracking</label> -->
+    <!-- <div class="tracking-switch">
+        <label for="tracking-toggle">Live Tracking</label>
         <label class="switch">
             <input type="checkbox" id="tracking-toggle">
             <span class="slider"></span>
         </label>
-    </div>
+    </div> -->
     <script>
+        const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V7.geojson'
+        const icr_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs.geojson'
         mapboxgl.accessToken = 'pk.eyJ1Ijoic3ViaGFzaDU0IiwiYSI6ImNseGx1Y3JyMDAyMDcya3M2ZHpxdHFsN28ifQ.knRGnsgFrZMb-_gUb0dQdA';
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/subhash54/clxrgo01v00oh01qw33lcc44s', // replace with your Mapbox style URL
             center: [73.106920, 28.127352], // set the initial center coordinates
-            zoom: 13 // set the initial zoom level
+            zoom: 13.5 // set the initial zoom level
         });
 
         // Add live location tracking
@@ -171,11 +177,11 @@
         map.on('load', () => {
             map.addSource('shapefile-source_tables', {
                 'type': 'geojson',
-                'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V7.geojson' // Replace with your actual URL
+                'data': table_geojson_url
             });
             map.addSource('shapefile-icr', {
                 'type': 'geojson',
-                'data': 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs.geojson' // Replace with your actual URL
+                'data': icr_geojson_url
             });
 
             map.addLayer({
@@ -290,7 +296,7 @@
             document.getElementById('search-button').addEventListener('click', () => {
                 const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
                 if (searchValue) {
-                    fetch('https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V7.geojson') // Update with correct path
+                    fetch(table_geojson_url)
                         .then(response => response.json())
                         .then(data => {
                             const features = data.features;
