@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Jakson Brookfield Digital Twin</title>
+    <title>Jakson - Brookfield Digital Twin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css' rel='stylesheet' />
@@ -38,7 +38,7 @@
         .location-icon {
             position: absolute;
             top: 10px;
-            right: 10px;
+            right: 50px;
             z-index: 1;
             background: rgba(1, 163, 244, 0.436);
             padding: 5px;
@@ -53,20 +53,40 @@
             border: 2px solid white;
             border-radius: 50%;
         }
-        
-        .ICR1 { background-color: #ffcccc; }
-        .ICR2 { background-color: #ccffcc; }
-        .ICR3 { background-color: #ccccff; }
-        .ICR4 { background-color: #ffffcc; }
-        .ICR5 { background-color: #ffcc99; }
-        .ICR6 { background-color: #cc99ff; }
-        .ICR7 { background-color: #99ffcc; }
-        .ICR8 { background-color: #99ccff; }
-        .ICR9 { background-color: #ff99cc; }
-        .ICR10 { background-color: #ccff99; }
-        .ICR11 { background-color: #cccc99; }
-        .ICR12 { background-color: #cc99cc; }
-        .ICR13 { background-color: #99ff99; }
+        .round-option-button {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 10px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #02a1f7;
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
+        }
+
+        .radio-buttons {
+            display: none;
+            position: absolute;
+            top: 60px; /* Adjust this value as needed */
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .radio-buttons label {
+            display: block;
+            margin: 5px 0;
+        }
+            
+         
     </style>
 </head>
 <body>
@@ -76,6 +96,7 @@
         <!-- <button id="search-button">Search</button> -->
         <button id="search-button" type="submit"><i class="fa fa-search"></i></button>
     </div>
+    
     <div class="map-label">
         dev. by Subhash Mahla
     </div>
@@ -83,6 +104,9 @@
         📍
         <!-- <i class="fa-solid fa-location-dot fa-bounce"></i> -->
     </div>
+    <!-- <div class="highlight_options" id="highlight_options">
+        🧩
+    </div> -->
     <!-- <div class="tracking-switch">
         <label for="tracking-toggle">Live Tracking</label>
         <label class="switch">
@@ -90,17 +114,120 @@
             <span class="slider"></span>
         </label>
     </div> -->
+
+    <!-- <button class="highlight_options">
+        <i class="fas fa-h"></i>  Options
+    </button> -->
+    <div class="round-option-button" onclick="toggleRadioButtons()">
+        <i class="fa fa-bars"></i>
+    </div>
+    <div class="radio-buttons" id="radioButtons">
+        <label><input type="radio" name="options" value="Option 1" onclick="logOption(this)"> Highlight ICR</label>
+        <label><input type="radio" name="options" value="Option 2" onclick="logOption(this)"> Highlight Master</label>
+        <!-- <label><input type="radio" name="options" value="Option 3" onclick="logOption(this)"> Option 3</label> -->
+    </div>
     <script>
         const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V7.geojson'
         const icr_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs.geojson'
         mapboxgl.accessToken = 'pk.eyJ1Ijoic3ViaGFzaDU0IiwiYSI6ImNseGx1Y3JyMDAyMDcya3M2ZHpxdHFsN28ifQ.knRGnsgFrZMb-_gUb0dQdA';
+        const icr_color_json = {
+                            "ICR1": "#ff0000",
+                            "ICR2": "#ffff00",  // Yellow, different from red
+                            "ICR3": "#00ff00",  // Green, different from yellow
+                            "ICR4": "#0000ff",  // Blue, different from green
+                            "ICR5": "#ff00ff",  // Magenta, different from blue
+                            "ICR6": "#800080",  // Purple, different from magenta
+                            "ICR7": "#00ffff",  // Light blue, different from purple (goes back to blue spectrum)
+                            "ICR8": "#ff0000",  // Red, different from light blue (repeats the first color)
+                            "ICR9": "#daa520",  // Orange-ish brown, different from red
+                            "ICR10": "#a05900",  // Dark brown, different from orange-ish brown
+                            "ICR11": "#c18900",  // Light brown, different from dark brown
+                            "ICR12": "#ffd700",  // Gold, different from light brown
+                            "ICR13": "#8b3e00",  // Dark orange, different from gold
+                            "ICR14": "#ffae00",  // Light orange, different from dark orange
+                            "ICR15": "#cd9700",  // Peach, different from light orange
+                            "ICR16": "#ffffff",  // White, different from peach
+                            "ICR17": "#000000",  // Black, different from white
+                            "ICR18": "#c0c0c0",  // Light gray, different from black
+                            "ICR19": "#808080",  // Gray, different from light gray
+                            "ICR20": "#666666",  // Dark gray, different from gray
+                            "ICR21": "#4d4d4d",  // Very dark gray, different from dark gray
+                            "ICR22": "#333333",  // Darker gray, different from very dark gray
+                            "ICR23": "#1a1a1a",  // Almost black, different from darker gray
+                            "ICR24": "#ffae00",  // Repeats light orange for variety  (can adjust this)
+                            "ICR25": "#a6a6a6",  // Light gray, different from previous light orange
+                            "ICR26": "#ffd600",  // Light gold, different from light gray
+                            "ICR27": "#ff0000",  // Red, different from light gold (repeats the first color again)
+                            "ICR28": "#00ffff",  // Light blue, different from red  (goes back to blue spectrum)
+                            "ICR29": "#800080",  // Purple, different from light blue
+                            "ICR30": "#c18900",  // Light brown, different from purple  (repeats a previous color)
+                            "ICR31": "#daa520",  // Orange-ish brown, different from light brown
+                            "ICR32": "#ffae00",  // Light orange, different from orange-ish brown  (repeats a previous color)
+                            "ICR33": "#a05900",  // Dark brown, different from light orange
+                            "ICR34": "#ffd700",  // Gold, different from dark brown
+                            "ICR35": "#ffffff",  // White, different from gold
+                            "ICR36": "#000000",  // Black, different from white
+                            "ICR37": "#c0c0c0",  // Light gray, different from black
+                            "ICR38": "#8b3e00",  // Dark orange, different from light gray
+                            "ICR39": "#ffae00",  // Light orange, different from dark orange  (repeats a previous color)
+                            "ICR40": "#4d4d4d",  
+                            }
+        const master_color_json = {
+                                "M1": "#FF0000",
+                                "M2": "#00FF00",
+                                "M3": "#0000FF",
+                                "M4": "#FFFF00",
+                                "M5": "#FF00FF",
+                                "M6": "#00FFFF",
+                                "M7": "#800000",
+                                "M8": "#008000",
+                                "M9": "#000080",
+                                "M10": "#808000",
+                                "M11": "#800080",
+                                "M12": "#008080",
+                                "M13": "#C0C0C0",
+                                "M14": "#808080",
+                                "M15": "#999999",
+                                "M16": "#FF8080",
+                                "M17": "#80FF80",
+                                "M18": "#8080FF",
+                                "M19": "#FF80FF",
+                                "M20": "#80FFFF",
+                                "M21": "#FFC0C0",
+                                "M22": "#C0FFC0",
+                                "M23": "#C0C0FF",
+                                "M24": "#FFFFC0",
+                                "M25": "#C0FFFF",
+                                "M26": "#E0E0E0",
+                                "M27": "#FFE0E0",
+                                "M28": "#E0FFE0",
+                                "M29": "#E0E0FF",
+                                "M30": "#FFE0FF",
+                                "M31": "#E0FFFF",
+                                "M32": "#F0F0F0",
+                                "M33": "#FFF0F0",
+                                "M34": "#F0FFF0",
+                                "M35": "#F0F0FF",
+                                "M36": "#FFF0FF",
+                                "M37": "#F0FFFF",
+                                "M38": "#D0D0D0",
+                                "M39": "#FFD0D0",
+                                "M40": "#D0FFD0"
+                                }
+        
+        const default_table_color = '#3a95dc'
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/subhash54/clxrgo01v00oh01qw33lcc44s', // replace with your Mapbox style URL
             center: [73.106920, 28.127352], // set the initial center coordinates
             zoom: 13.5 // set the initial zoom level
         });
-
+        let geoJsonData;
+        fetch(table_geojson_url)
+            .then(response => response.json())
+            .then(data => {
+                geoJsonData = data;
+            });
         // Add live location tracking
         let userMarker;
         let watchId;
@@ -296,10 +423,10 @@
             document.getElementById('search-button').addEventListener('click', () => {
                 const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
                 if (searchValue) {
-                    fetch(table_geojson_url)
-                        .then(response => response.json())
-                        .then(data => {
-                            const features = data.features;
+                    // fetch(table_geojson_url)
+                    //     .then(response => response.json())
+                    //     .then(data => {
+                            const features = geoJsonData.features;
                             var search_attri = "";
                             const feature = features.find(f => {
                                 const nodeId = f.properties.node_id !== undefined ? String(f.properties.node_id).toLowerCase() : '';
@@ -365,17 +492,83 @@
                                 console.log('No matching polygon found');
                                 alert('No matching table found');
                             }
-                        })
-                        .catch(err => {
-                            console.error('Error fetching GeoJSON data:', err);
-                        });
+                        // })
+                        // .catch(err => {
+                        //     console.error('Error fetching GeoJSON data:', err);
+                        // });
                 } else {
                     alert('Please enter a valid id');
                 }
             });
 
+            
+            
+            
 
         });
+        function toggleRadioButtons() {
+                const radioButtons = document.getElementById('radioButtons');
+                radioButtons.style.display = radioButtons.style.display === 'block' ? 'none' : 'block';
+            }
+        function logOption(radio) {
+                console.log('Selected option:', radio.value);
+                if(radio.value === 'Option 1'){
+                    highlight_icr();
+                }
+                if(radio.value === 'Option 2'){
+                    highlight_master();
+                }
+            }
+        // function highlight_equip(){
+        //         const features = geoJsonData.features;
+        //         features.forEach((feature, index) => {
+        //             const icr = "ICR" + feature.properties.B;
+        //             const icr_color = icr_color_json.icr;
+        //             map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+        //                         'case',
+        //                             ['==', ['get', 'B'], feature.properties.B],
+        //                             icr_color,
+        //                             null
+        //                         ]
+        //                         );
+        //         });
+        // }
+        function highlight_icr() {
+            const features = geoJsonData.features;
+            const paintExpression = ['case'];
+
+            features.forEach((feature) => {
+                const icr = "ICR" + feature.properties.B;
+                const icr_color = icr_color_json[icr]  || default_table_color;
+                console.log (icr, icr_color)
+                paintExpression.push(
+                    ['==', ['get', 'B'], feature.properties.B],
+                    icr_color
+                );
+            });
+
+            paintExpression.push('#000000'); // Default color if no matches
+
+            map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintExpression);
+        }
+        function highlight_master() {
+            const features = geoJsonData.features;
+            const paintExpressionm = ['case'];
+
+            features.forEach((feature) => {
+                const master = "M" + feature.properties.tkr_master;
+                const master_color = master_color_json[master]  || default_table_color;
+                console.log (master, master_color)
+                paintExpressionm.push(
+                    ['==', ['get', 'tkr_master'], feature.properties.tkr_master],
+                    master_color
+                );
+            });
+
+            paintExpressionm.push('#000000'); // Default color if no matches
+
+            map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintExpressionm);
+        }
     </script>
 </body>
 </html>
