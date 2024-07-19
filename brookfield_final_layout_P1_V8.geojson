@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "Brookfield Phase 1 Complete_geojson",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "eq_id": "e14b43c0-d059-4854-a9ce-ad10bc3c050f", "row": "13", "col": "231", "B": "11", "INV": "2", "SCB": "5", "STR": "7", "str_id": "B11-INV2-SCB5-STR7", "row_col": "R13-C231", "tkr_master": 11, "node_id": "AC71", "tkr_xy_id": "2792-6724" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ 73.107271826774365, 28.131879567754552 ], [ 73.10726106888589, 28.132495886772979 ], [ 73.107295709999036, 28.132496491435859 ], [ 73.107306467887511, 28.131880172417432 ], [ 73.107271826774365, 28.131879567754552 ] ] ] ] } }
+]
+}
