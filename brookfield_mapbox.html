@@ -9,7 +9,7 @@
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css' rel='stylesheet' />
     <!-- <link href='https://api.mapbox.com/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.css' rel='stylesheet' /> -->
     <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.js'></script>
-    <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.css' type='text/css' />
+    <!-- <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.css' type='text/css' /> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
         body { margin: 0; padding: 0; }
@@ -29,16 +29,35 @@
             margin-bottom: 2px;
         }
         
-        .location-icon {
+        /* .location-icon {
             position: absolute;
-            top: 10px;
-            right: 50px;
+            top: 50px;
+            right: 10px;
             z-index: 1;
+            border: 2px solid rgb(1, 163, 244);
             background: rgba(1, 163, 244, 0.436);
             padding: 5px;
             border-radius: 50%;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
             cursor: pointer;
+        } */
+        .location-icon-button {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 50px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #02a1f7;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
         }
         .round-marker {
             width: 10px;
@@ -52,7 +71,7 @@
             display: inline-block;
             width: 30px;
             height: 30px;
-            top: 10px;
+            top: 90px;
             right: 10px;
             border-radius: 50%;
             border: 2px solid #02a1f7;
@@ -65,14 +84,31 @@
             cursor: pointer;
             background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
         }
-
+        .round-reload-button {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 10px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #f70202;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(244, 1, 1, 0.436); /* Semi-transparent */
+        }
         .radio-buttons {
             display: none;
             position: absolute;
-            top: 60px; /* Adjust this value as needed */
+            top: 130px; /* Adjust this value as needed */
             right: 0;
-            background-color: #fff;
-            border: 1px solid #ccc;
+            background-color: rgba(1, 163, 244, 0.957);
+            border: 1px solid #02a1f7;
             padding: 10px;
             border-radius: 5px;
         }
@@ -125,14 +161,13 @@
         <!-- <button id="filter-button">Apply Filter</button> -->
         </div>
     </div>
-    
     <div class="map-label">
     <!-- <div class="dev-name"> -->
         dev. by Subhash Mahla
     </div>
-    <div class="location-icon" id="location-icon">
+    <div class="location-icon-button" id="location-icon">
         📍
-        <!-- <i class="fa-solid fa-location-dot fa-bounce"></i> -->
+        <!-- <i class="fa fa-location-dot"></i> -->
     </div>
     <!-- <div class="highlight_options" id="highlight_options">
         🧩
@@ -148,6 +183,9 @@
     <!-- <button class="highlight_options">
         <i class="fas fa-h"></i>  Options
     </button> -->
+    <div class="round-reload-button" onclick="location.reload()">
+        <i class="fa fa-rotate-right" style="color: #720000;"></i>
+    </div>
     <div class="round-option-button" onclick="toggleRadioButtons()">
         <i class="fa fa-bars"></i>
     </div>
@@ -513,7 +551,7 @@
                             'line-width': 5
                         }
             });
-            populateDropdowns(geoJsonData_tables);
+            // populateDropdowns(geoJsonData_tables);
             document.getElementById('search-button').addEventListener('click', () => {
                 const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
                 if (searchValue) {
@@ -663,6 +701,7 @@
 
             map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintExpressionm);
         }
+        
         function populateDropdowns(data) {
             const BDropdown = document.getElementById('B-dropdown');
             const INVDropdown = document.getElementById('INV-dropdown');
