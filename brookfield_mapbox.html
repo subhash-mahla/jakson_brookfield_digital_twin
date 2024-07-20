@@ -5,7 +5,11 @@
     <title>Jakson - Brookfield Digital Twin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js'></script>
+    <!-- <script src='https://api.mapbox.com/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.js'></script> -->
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css' rel='stylesheet' />
+    <!-- <link href='https://api.mapbox.com/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.css' rel='stylesheet' /> -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.js'></script>
+    <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.css' type='text/css' />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
         body { margin: 0; padding: 0; }
@@ -152,8 +156,9 @@
         <!-- <label><input type="radio" name="options" value="Option 3" onclick="logOption(this)"> Option 3</label> -->
     </div>
     <script>
-        const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V8.geojson'
-        const icr_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs.geojson'
+        const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V8.geojson';
+        const icr_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs.geojson';
+        const road_map_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_road_map_V1.geojson';
         mapboxgl.accessToken = 'pk.eyJ1Ijoic3ViaGFzaDU0IiwiYSI6ImNseGx1Y3JyMDAyMDcya3M2ZHpxdHFsN28ifQ.knRGnsgFrZMb-_gUb0dQdA';
         const icr_color_json = {
                         "ICR1": "#FF0000",
@@ -249,6 +254,12 @@
             center: [73.106920, 28.127352], // set the initial center coordinates
             zoom: 13.5 // set the initial zoom level
         });
+        const directions = new MapboxDirections({
+            accessToken: mapboxgl.accessToken,
+            unit: 'metric',
+            profile: 'mapbox/driving'
+        });
+
         let geoJsonData_tables;
         fetch(table_geojson_url)
             .then(response => response.json())
@@ -262,6 +273,13 @@
             .then(data => {
                 geoJsonData_icr = data;
             });
+        let geoJsonData_road_map;
+        fetch(road_map_geojson_url)
+            .then(response => response.json())
+            .then(data => {
+                geoJsonData_road_map = data;
+            });
+            
         // Add live location tracking
         let userMarker;
         let watchId;
@@ -441,7 +459,8 @@
                     'text-field': [
                                     'format',
                                     ['case',
-                                        ['==', ['get', 'icr'], 'MCR'], 
+                                        ['==', ['get', 'icr'], 'MCR'],
+                                        ['==', ['get', 'icr'], 'Jakson O&M Office'], 
                                         '', 
                                         'ICR '
                                     ],
@@ -470,6 +489,27 @@
                     .setLngLat(coordinates)
                     .setHTML(`<br /><strong>ICR :</strong> ${properties.icr}`)
                     .addTo(map);
+                if (userMarker) {
+                            directions.setOrigin(userMarker.getLngLat());
+                            directions.setDestination(coordinates);
+                            map.addControl(directions, 'top-left');
+                        }
+            });
+
+            map.addSource('roadmap', {
+                        'type': 'geojson',
+                        'data': geoJsonData_road_map
+                    });
+
+            map.addLayer({
+                        'id': 'roadmap-layer',
+                        'type': 'line',
+                        'source': 'roadmap',
+                        'layout': {},
+                        'paint': {
+                            'line-color': '#ff0000',
+                            'line-width': 5
+                        }
             });
 
             document.getElementById('search-button').addEventListener('click', () => {
