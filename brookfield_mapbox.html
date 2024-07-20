@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
         body { margin: 0; padding: 0; }
-        #map { position: absolute; top: 0; bottom: 30px; width: 100%; }
+        #map { position: absolute; top: 0; bottom: 0px; width: 100%; }
         .search-container {
             position: absolute;
             top: 10px;
@@ -28,17 +28,7 @@
         .dropdown-container {
             margin-bottom: 2px;
         }
-        .map-label {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(255, 255, 255, 0.305);
-            padding: 5px 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.406);
-            z-index: 1000;
-        }
+        
         .location-icon {
             position: absolute;
             top: 10px;
@@ -91,6 +81,20 @@
             display: block;
             margin: 5px 0;
         }
+        .map-label {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.305);
+            padding: 2px 5px;
+            font-weight: bold;
+            /* font-size: 20px; */
+            /* font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; */
+            border-radius: 10px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.406);
+            z-index: 1000;
+        }
             
          
     </style>
@@ -101,23 +105,19 @@
         <input type="text" id="search-input" placeholder="Search by node, str_id, row-col" />
         <!-- <button id="search-button">Search</button> -->
         <button id="search-button" type="submit"><i class="fa fa-search"></i></button>
-        <!-- <div class="dropdown-container">
-            <label for="B-dropdown">B:</label>
-        <select id="B-dropdown">
+        <div class="dropdown-container">
+            <!-- <label for="B-dropdown">B:</label> -->
+        <!-- <select id="B-dropdown">
             <option value="">B</option>
         </select>
-
-        <label for="INV-dropdown">INV:</label>
-        <select id="INV-dropdown" disabled>
+        <select id="INV-dropdown">
             <option value="">INV</option>
         </select>
 
-        <label for="SCB-dropdown">SCB:</label>
-        <select id="SCB-dropdown" disabled>
+        <select id="SCB-dropdown">
             <option value="">SCB</option>
         </select>
 
-        <label for="STR-dropdown">STR:</label>
         <select id="STR-dropdown" disabled>
             <option value="">STR</option>
         </select> -->
@@ -127,6 +127,7 @@
     </div>
     
     <div class="map-label">
+    <!-- <div class="dev-name"> -->
         dev. by Subhash Mahla
     </div>
     <div class="location-icon" id="location-icon">
@@ -459,7 +460,7 @@
                     'text-field': [
                                     'format',
                                     ['case',
-                                        ['==', ['get', 'icr'], 'MCR' || 'Jakson O&M Office'],
+                                        ['==', ['get', 'icr'], 'MCR' && 'Jakson O&M Office'],
                                         // ['==', ['get', 'icr'], 'Jakson O&M Office'], 
                                         '', 
                                         'ICR '
@@ -468,6 +469,7 @@
                                     ['get', 'icr'],
                                     {}
                                 ],
+                 
                     'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
                     'text-size': 12,
                     'text-offset': [0, 0], // Adjust the text position
@@ -511,7 +513,7 @@
                             'line-width': 5
                         }
             });
-
+            populateDropdowns(geoJsonData_tables);
             document.getElementById('search-button').addEventListener('click', () => {
                 const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
                 if (searchValue) {
@@ -661,6 +663,123 @@
 
             map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintExpressionm);
         }
+        function populateDropdowns(data) {
+            const BDropdown = document.getElementById('B-dropdown');
+            const INVDropdown = document.getElementById('INV-dropdown');
+            const SCBDropdown = document.getElementById('SCB-dropdown');
+            const STRDropdown = document.getElementById('STR-dropdown');
+
+            const Bs = new Set();
+            const INVs = new Set();
+            const SCBs = new Set();
+            const STRs = new Set();
+
+            data.features.forEach(feature => {
+                if (feature.properties.B) Bs.add(feature.properties.B);
+                if (feature.properties.INV) INVs.add(feature.properties.INV);
+                if (feature.properties.SCB) SCBs.add(feature.properties.SCB);
+                if (feature.properties.STR) STRs.add(feature.properties.STR);
+            });
+
+            Bs.forEach(B => {
+                const option = document.createElement('option');
+                option.value = B;
+                option.textContent = B;
+                BDropdown.appendChild(option);
+            });
+
+            INVs.forEach(INV => {
+                const option = document.createElement('option');
+                option.value = INV;
+                option.textContent = INV;
+                INVDropdown.appendChild(option);
+            });
+
+            SCBs.forEach(SCB => {
+                const option = document.createElement('option');
+                option.value = SCB;
+                option.textContent = SCB;
+                SCBDropdown.appendChild(option);
+            });
+
+            STRs.forEach(STR => {
+                const option = document.createElement('option');
+                option.value = STR;
+                option.textContent = STR;
+                STRDropdown.appendChild(option);
+            });
+        }
+
+        function filterPolygons(property, value) {
+            console.log('DROPDOWN STATUS :', dropdown_status)
+            // const feature = geoJsonData_tables.features.find(f => f.properties[property] === value);
+            const feature = geoJsonData_tables.features.find(f => {
+                const filters = {}; // Create an empty object to store filters
+
+                // Check dropdown_status values and create filters
+                if (dropdown_status["ICR"] !== '') {
+                    filters["ICR"] = f.properties["ICR"];
+                }
+                if (dropdown_status["INV"] !== '') {
+                    filters["INV"] = f.properties["INV"];
+                }
+                if (dropdown_status["SCB"] !== '') {
+                    filters["SCB"] = f.properties["SCB"];
+                }
+                if (dropdown_status["STR"] !== '') {
+                    filters["STR"] = f.properties["STR"];
+                }
+
+                // Check if there are any filters to apply
+                return Object.keys(filters).length > 0 && Object.values(filters).every(value => value !== '');
+                });
+            if (feature) {
+                const coordinates = feature.geometry.coordinates[0][0];
+                const bounds = coordinates.reduce((bounds, coord) => {
+                    return bounds.extend(coord);
+                }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+
+                map.fitBounds(bounds, {
+                    padding: 20
+                });
+
+                map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                    'case',
+                    ['==', ['get', property], value],
+                    '#ff0000',
+                    default_table_color
+                ]);
+
+                const properties = feature.properties;
+                new mapboxgl.Popup()
+                    .setLngLat(bounds.getCenter())
+                    .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID:</strong> ${properties.node_id}`)
+                    .addTo(map);
+            } else {
+                alert('No matching polygon found');
+            }
+        }
+        var dropdown_status = {'B':'','INV':'','SCB':'','STR':''}
+        document.getElementById('B-dropdown').addEventListener('change', (e) => {
+            filterPolygons('B', e.target.value);
+            dropdown_status["B"] = e.target.value;
+        });
+
+        document.getElementById('INV-dropdown').addEventListener('change', (e) => {
+            filterPolygons('INV', e.target.value);
+            dropdown_status["INV"] = e.target.value;
+        });
+
+        document.getElementById('SCB-dropdown').addEventListener('change', (e) => {
+            filterPolygons('SCB', e.target.value);
+            dropdown_status["SCB"] = e.target.value;
+        });
+
+        document.getElementById('STR-dropdown').addEventListener('change', (e) => {
+            filterPolygons('STR', e.target.value);
+            dropdown_status["STR"] = e.target.value;
+        });
+        
     </script>
 </body>
 </html>
