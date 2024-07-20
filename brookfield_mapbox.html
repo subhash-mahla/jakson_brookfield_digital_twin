@@ -4,11 +4,11 @@
     <meta charset="utf-8" />
     <title>Jakson - Brookfield Digital Twin</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.js'></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js'></script>
     <!-- <script src='https://api.mapbox.com/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.js'></script> -->
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css' rel='stylesheet' />
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css' rel='stylesheet' />
     <!-- <link href='https://api.mapbox.com/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.css' rel='stylesheet' /> -->
-    <!-- <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.js'></script> -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.js'></script>
     <!-- <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.css' type='text/css' /> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
@@ -136,8 +136,6 @@
     </style>
 </head>
 <body>
-    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
-    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css" type="text/css">
     <div id="map"></div>
     <div class="search-container">
         <input type="text" id="search-input" placeholder="Search by node, str_id, row-col" />
@@ -145,7 +143,7 @@
         <button id="search-button" type="submit"><i class="fa fa-search"></i></button>
         <div class="dropdown-container">
             <!-- <label for="B-dropdown">B:</label> -->
-        <select id="B-dropdown">
+        <!-- <select id="B-dropdown">
             <option value="">B</option>
         </select>
         <select id="INV-dropdown">
@@ -156,12 +154,9 @@
             <option value="">SCB</option>
         </select>
 
-        <select id="STR-dropdown">
+        <select id="STR-dropdown" disabled>
             <option value="">STR</option>
-        </select>
-        <select id="M-dropdown">
-            <option value="">M</option>
-        </select>
+        </select> -->
 
         <!-- <button id="filter-button">Apply Filter</button> -->
         </div>
@@ -396,7 +391,7 @@
         // Initialize map without live tracking
         stopTracking();
 
-        
+
         map.on('load', () => {
             map.addSource('shapefile-source_tables', {
                 'type': 'geojson',
@@ -540,27 +535,23 @@
                             map.addControl(directions, 'top-left');
                         }
             });
-            console.log(geoJsonData_road_map);
+
             map.addSource('roadmap', {
-                'type': 'geojson',
-                'data': geoJsonData_road_map
-            });
+                        'type': 'geojson',
+                        'data': geoJsonData_road_map
+                    });
 
             map.addLayer({
-                'id': 'roadmap-layer',
-                'type': 'line',
-                'source': 'roadmap',
-                'layout': {
-                    'line-join': 'round',
-                    'line-cap': 'round'
-                },
-                'paint': {
-                    'line-color': '#ff0000', // Change this for desired color
-                    'line-width': 5, // Change this for desired line width
-                    'line-opacity': 1 // Change this for desired opacity (0-1)
-                }
+                        'id': 'roadmap-layer',
+                        'type': 'line',
+                        'source': 'roadmap',
+                        'layout': {},
+                        'paint': {
+                            'line-color': '#ff0000',
+                            'line-width': 5
+                        }
             });
-            populateDropdowns(geoJsonData_tables);
+            // populateDropdowns(geoJsonData_tables);
             document.getElementById('search-button').addEventListener('click', () => {
                 const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
                 if (searchValue) {
@@ -594,16 +585,9 @@
                                 const bounds = feature.geometry.coordinates[0][0].reduce((bounds, coord) => {
                                     return bounds.extend(coord);
                                 }, new mapboxgl.LngLatBounds(coordinates, coordinates));
-                                // const combinedBounds = selectedFeatures.reduce((bounds, feature) => {
-                                //     const coordinates = feature.geometry.coordinates[0][0];
-                                //     const featureBounds = coordinates.reduce((bounds, coord) => {
-                                //         return bounds.extend(coord);
-                                //     }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
-                                //     return bounds.extend(featureBounds);
-                                // }, new mapboxgl.LngLatBounds());
 
                                 map.fitBounds(bounds, {
-                                    padding: 150
+                                    padding: 20
                                 });
                                 if (search_attri === "strid"){
                                 map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
@@ -632,7 +616,7 @@
                                 ]);}
                                 const properties = feature.properties;
                                 new mapboxgl.Popup()
-                                    .setLngLat(bounds.getCenter())
+                                    .setLngLat(coordinates)
                                     .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
                                     .addTo(map);
                                 console.log('Match found and highlighted');
@@ -723,162 +707,116 @@
             const INVDropdown = document.getElementById('INV-dropdown');
             const SCBDropdown = document.getElementById('SCB-dropdown');
             const STRDropdown = document.getElementById('STR-dropdown');
-            const MDropdown = document.getElementById('M-dropdown');
 
-            var Bs = new Set();
-            var INVs = new Set();
-            var SCBs = new Set();
-            var STRs = new Set();
-            var Ms = new Set();
+            const Bs = new Set();
+            const INVs = new Set();
+            const SCBs = new Set();
+            const STRs = new Set();
 
             data.features.forEach(feature => {
                 if (feature.properties.B) Bs.add(feature.properties.B);
                 if (feature.properties.INV) INVs.add(feature.properties.INV);
                 if (feature.properties.SCB) SCBs.add(feature.properties.SCB);
                 if (feature.properties.STR) STRs.add(feature.properties.STR);
-                if (feature.properties.tkr_master) Ms.add(feature.properties.tkr_master);
             });
 
-            function data_sort(in_set){
-                const outArray = [...in_set]; 
-                outArray.sort((a, b) => a - b);
-                const sortedset = new Set(outArray);
-                return sortedset;
-            }
-            // Bs.sort((a, b) => a - b);
-            Bs = data_sort(Bs)
             Bs.forEach(B => {
                 const option = document.createElement('option');
                 option.value = B;
                 option.textContent = B;
                 BDropdown.appendChild(option);
             });
-            INVs = data_sort(INVs)
+
             INVs.forEach(INV => {
                 const option = document.createElement('option');
                 option.value = INV;
                 option.textContent = INV;
                 INVDropdown.appendChild(option);
             });
-            SCBs = data_sort(SCBs)
+
             SCBs.forEach(SCB => {
                 const option = document.createElement('option');
                 option.value = SCB;
                 option.textContent = SCB;
                 SCBDropdown.appendChild(option);
             });
-            STRs = data_sort(STRs)
+
             STRs.forEach(STR => {
                 const option = document.createElement('option');
                 option.value = STR;
                 option.textContent = STR;
                 STRDropdown.appendChild(option);
             });
-            Ms = data_sort(Ms)
-            Ms.forEach(M => {
-                const option = document.createElement('option');
-                option.value = M;
-                option.textContent = M;
-                MDropdown.appendChild(option);
-            });
         }
 
-        
-        function filterPolygons() {
-            console.log('DROPDOWN STATUS :', dropdown_status);
-            const Bs = dropdown_status['B'];
-            const INVs = dropdown_status['INV'];
-            const SCBs = dropdown_status['SCB'];
-            const STRs = dropdown_status['STR'];
-            const Ms = dropdown_status['M'];
+        function filterPolygons(property, value) {
+            console.log('DROPDOWN STATUS :', dropdown_status)
+            // const feature = geoJsonData_tables.features.find(f => f.properties[property] === value);
+            const feature = geoJsonData_tables.features.find(f => {
+                const filters = {}; // Create an empty object to store filters
 
-            // if(Bs!=='' || INVs!=='' || SCBs!=='' || STRs!==''|| Ms!==''){
-                let selectedFeatures = geoJsonData_tables.features;
-                if (Bs) {
-                    selectedFeatures = selectedFeatures.filter(f => f.properties.B === Bs);
+                // Check dropdown_status values and create filters
+                if (dropdown_status["ICR"] !== '') {
+                    filters["ICR"] = f.properties["ICR"];
+                }
+                if (dropdown_status["INV"] !== '') {
+                    filters["INV"] = f.properties["INV"];
+                }
+                if (dropdown_status["SCB"] !== '') {
+                    filters["SCB"] = f.properties["SCB"];
+                }
+                if (dropdown_status["STR"] !== '') {
+                    filters["STR"] = f.properties["STR"];
                 }
 
-                if (INVs) {
-                    selectedFeatures = selectedFeatures.filter(f => f.properties.INV === INVs);
-                }
+                // Check if there are any filters to apply
+                return Object.keys(filters).length > 0 && Object.values(filters).every(value => value !== '');
+                });
+            if (feature) {
+                const coordinates = feature.geometry.coordinates[0][0];
+                const bounds = coordinates.reduce((bounds, coord) => {
+                    return bounds.extend(coord);
+                }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
 
-                if (SCBs) {
-                    selectedFeatures = selectedFeatures.filter(f => f.properties.SCB === SCBs);
-                }
-                if (STRs) {
-                    selectedFeatures = selectedFeatures.filter(f => f.properties.STR === STRs);
-                }
-                if (Ms) {
-                    selectedFeatures = selectedFeatures.filter(f => ''+f.properties.tkr_master === Ms);
-                }
-            // }
-
-            if (selectedFeatures.length > 0) {
-                // console.log(selectedFeatures)
-                // Combine the bounds of all selected features
-                const combinedBounds = selectedFeatures.reduce((bounds, feature) => {
-                    const coordinates = feature.geometry.coordinates[0][0];
-                    const featureBounds = coordinates.reduce((bounds, coord) => {
-                        return bounds.extend(coord);
-                    }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
-                    return bounds.extend(featureBounds);
-                }, new mapboxgl.LngLatBounds());
-
-                // Fit map to combined bounds
-                map.fitBounds(combinedBounds, {
-                    padding: 50
+                map.fitBounds(bounds, {
+                    padding: 20
                 });
 
-                // Update paint property for selected features
                 map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
                     'case',
-                    ...selectedFeatures.flatMap(feature => [
-                        ['==', ['get', 'str_id'], feature.properties.str_id],
-                        '#ff0000'
-                    ]),
-                    default_table_color || '#3a95dc'
+                    ['==', ['get', property], value],
+                    '#ff0000',
+                    default_table_color
                 ]);
-            if (selectedFeatures.length === 1){
-                selectedFeatures.forEach(feature => {
-                    const coordinates = feature.geometry.coordinates[0][0];
-                    const bounds = coordinates.reduce((bounds, coord) => {
-                        return bounds.extend(coord);
-                    }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
 
-                    const properties = feature.properties;
-                    new mapboxgl.Popup()
-                        .setLngLat(bounds.getCenter())
-                        .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID:</strong> ${properties.node_id}`)
-                        .addTo(map);
-                });
-            }
+                const properties = feature.properties;
+                new mapboxgl.Popup()
+                    .setLngLat(bounds.getCenter())
+                    .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID:</strong> ${properties.node_id}`)
+                    .addTo(map);
             } else {
-                alert('No matching polygons found');
+                alert('No matching polygon found');
             }
         }
-        var dropdown_status = {'B':'','INV':'','SCB':'','STR':'','M':''}
+        var dropdown_status = {'B':'','INV':'','SCB':'','STR':''}
         document.getElementById('B-dropdown').addEventListener('change', (e) => {
+            filterPolygons('B', e.target.value);
             dropdown_status["B"] = e.target.value;
-            filterPolygons();
         });
 
         document.getElementById('INV-dropdown').addEventListener('change', (e) => {
+            filterPolygons('INV', e.target.value);
             dropdown_status["INV"] = e.target.value;
-            filterPolygons();
         });
 
         document.getElementById('SCB-dropdown').addEventListener('change', (e) => {
+            filterPolygons('SCB', e.target.value);
             dropdown_status["SCB"] = e.target.value;
-            filterPolygons();
         });
 
         document.getElementById('STR-dropdown').addEventListener('change', (e) => {
+            filterPolygons('STR', e.target.value);
             dropdown_status["STR"] = e.target.value;
-            filterPolygons();
-        });
-        document.getElementById('M-dropdown').addEventListener('change', (e) => {
-            dropdown_status["M"] = e.target.value;
-            filterPolygons();
         });
         
     </script>
