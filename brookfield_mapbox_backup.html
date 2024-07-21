@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Jakson - Brookfield Digital Twin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.js'></script>
+    <!-- <script src='https://api.mapbox.com/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.js'></script> -->
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css' rel='stylesheet' />
+    <!-- <link href='https://api.mapbox.com/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.css' rel='stylesheet' /> -->
+    <!-- <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.js'></script> -->
+    <!-- <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.css' type='text/css' /> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; bottom: 0px; width: 100%; }
+        .search-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1;
+            background: rgba(1, 163, 244, 0.436);
+            padding: 3px;
+            border-radius: 3px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        
+        .dropdown-container {
+            margin-bottom: 2px;
+        }
+        
+        /* .location-icon {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            z-index: 1;
+            border: 2px solid rgb(1, 163, 244);
+            background: rgba(1, 163, 244, 0.436);
+            padding: 5px;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        } */
+        .location-icon-button {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 50px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #02a1f7;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
+        }
+        .round-marker {
+            width: 10px;
+            height: 10px;
+            background-color: blue;
+            border: 2px solid white;
+            border-radius: 50%;
+        }
+        .round-option-button {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 90px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #02a1f7;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
+        }
+        .round-reload-button {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 10px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #f70202;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(244, 1, 1, 0.436); /* Semi-transparent */
+        }
+        .radio-buttons {
+            display: none;
+            position: absolute;
+            top: 130px; /* Adjust this value as needed */
+            right: 0;
+            background-color: rgba(1, 163, 244, 0.957);
+            border: 1px solid #02a1f7;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .radio-buttons label {
+            display: block;
+            margin: 5px 0;
+        }
+        .map-label {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.305);
+            padding: 2px 5px;
+            font-weight: bold;
+            /* font-size: 20px; */
+            /* font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; */
+            border-radius: 10px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.406);
+            z-index: 1000;
+        }
+            
+         
+    </style>
+</head>
+<body>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css" type="text/css">
+    <div id="map"></div>
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search by node, str_id, row-col" />
+        <!-- <button id="search-button">Search</button> -->
+        <button id="search-button" type="submit"><i class="fa fa-search"></i></button>
+        <div class="dropdown-container">
+            <!-- <label for="B-dropdown">B:</label> -->
+        <select id="B-dropdown">
+            <option value="">B</option>
+        </select>
+        <select id="INV-dropdown">
+            <option value="">INV</option>
+        </select>
+
+        <select id="SCB-dropdown">
+            <option value="">SCB</option>
+        </select>
+
+        <select id="STR-dropdown">
+            <option value="">STR</option>
+        </select>
+        <select id="M-dropdown">
+            <option value="">M</option>
+        </select>
+
+        <!-- <button id="filter-button">Apply Filter</button> -->
+        </div>
+    </div>
+    <div class="map-label">
+    <!-- <div class="dev-name"> -->
+        dev. by Subhash Mahla
+    </div>
+    <div class="location-icon-button" id="location-icon">
+        📍
+        <!-- <i class="fa fa-location-dot"></i> -->
+    </div>
+    <!-- <div class="highlight_options" id="highlight_options">
+        🧩
+    </div> -->
+    <!-- <div class="tracking-switch">
+        <label for="tracking-toggle">Live Tracking</label>
+        <label class="switch">
+            <input type="checkbox" id="tracking-toggle">
+            <span class="slider"></span>
+        </label>
+    </div> -->
+
+    <!-- <button class="highlight_options">
+        <i class="fas fa-h"></i>  Options
+    </button> -->
+    <div class="round-reload-button" onclick="location.reload()">
+        <i class="fa fa-rotate-right" style="color: #720000;"></i>
+    </div>
+    <div class="round-option-button" onclick="toggleRadioButtons()">
+        <i class="fa fa-bars"></i>
+    </div>
+    <div class="radio-buttons" id="radioButtons">
+        <label><input type="radio" name="options" value="Option 1" onclick="logOption(this)"> Highlight ICR</label>
+        <label><input type="radio" name="options" value="Option 2" onclick="logOption(this)"> Highlight Master</label>
+        <!-- <label><input type="radio" name="options" value="Option 3" onclick="logOption(this)"> Option 3</label> -->
+    </div>
+    <script>
+        const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V8.geojson';
+        const icr_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs.geojson';
+        const road_map_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_road_map_V1.geojson';
+        mapboxgl.accessToken = 'pk.eyJ1Ijoic3ViaGFzaDU0IiwiYSI6ImNseGx1Y3JyMDAyMDcya3M2ZHpxdHFsN28ifQ.knRGnsgFrZMb-_gUb0dQdA';
+        const icr_color_json = {
+                        "ICR1": "#FF0000",
+                        "ICR2": "#00FF00",
+                        "ICR3": "#0000FF",
+                        "ICR4": "#FFFF00",
+                        "ICR5": "#FF00FF",
+                        "ICR6": "#00FFFF",
+                        "ICR7": "#800000",
+                        "ICR8": "#008000",
+                        "ICR9": "#000080",
+                        "ICR10": "#808000",
+                        "ICR11": "#800080",
+                        "ICR12": "#008080",
+                        "ICR13": "#C0C0C0",
+                        "ICR14": "#00ffae", 
+                        "ICR15": "#FF8080",
+                        "ICR16": "#80FF80",
+                        "ICR17": "#8080FF",
+                        "ICR18": "#FF80FF",
+                        "ICR19": "#80FFFF",
+                        "ICR20": "#FFC0C0",
+                        "ICR21": "#C0FFC0",
+                        "ICR22": "#C0C0FF",
+                        "ICR23": "#FFFFC0",
+                        "ICR24": "#C0FFFF",
+                        "ICR25": "#FF8000",
+                        "ICR26": "#8000FF",
+                        "ICR27": "#00FF80",
+                        "ICR28": "#80FF00",
+                        "ICR29": "#FF0080",
+                        "ICR30": "#0080FF",
+                        "ICR31": "#800080",
+                        "ICR32": "#8080C0",
+                        "ICR33": "#FF0080",
+                        "ICR34": "#80C0FF",
+                        "ICR35": "#FF8000",
+                        "ICR36": "#8000C0",
+                        "ICR37": "#80FF00",
+                        "ICR38": "#C08080",
+                        "ICR39": "#80C080",
+                        "ICR40": "#8080C0"
+                        }
+
+        const master_color_json = {
+                                "M1": "#FF0000",
+                                "M2": "#00FF00",
+                                "M3": "#0000FF",
+                                "M4": "#FFFF00",
+                                "M5": "#FF00FF",
+                                "M6": "#00FFFF",
+                                "M7": "#800000",
+                                "M8": "#008000",
+                                "M9": "#000080",
+                                "M10": "#808000",
+                                "M11": "#800080",
+                                "M12": "#008080",
+                                "M13": "#C0C0C0",
+                                "M14": "#00ffae",
+                                "M15": "#999999",
+                                "M16": "#FF8080",
+                                "M17": "#80FF80",
+                                "M18": "#8080FF",
+                                "M19": "#FF80FF",
+                                "M20": "#80FFFF",
+                                "M21": "#FFC0C0",
+                                "M22": "#C0FFC0",
+                                "M23": "#C0C0FF",
+                                "M24": "#FFFFC0",
+                                "M25": "#C0FFFF",
+                                "M26": "#E0E0E0",
+                                "M27": "#FFE0E0",
+                                "M28": "#E0FFE0",
+                                "M29": "#E0E0FF",
+                                "M30": "#FFE0FF",
+                                "M31": "#E0FFFF",
+                                "M32": "#F0F0F0",
+                                "M33": "#FFF0F0",
+                                "M34": "#F0FFF0",
+                                "M35": "#F0F0FF",
+                                "M36": "#FFF0FF",
+                                "M37": "#F0FFFF",
+                                "M38": "#D0D0D0",
+                                "M39": "#FFD0D0",
+                                "M40": "#D0FFD0"
+                                }
+        
+        const default_table_color = '#3a95dc'
+        const default_icr_color = '#3a95dc'
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/subhash54/clxrgo01v00oh01qw33lcc44s', // replace with your Mapbox style URL
+            center: [73.106920, 28.127352], // set the initial center coordinates
+            zoom: 13.5 // set the initial zoom level
+        });
+        const directions = new MapboxDirections({
+            accessToken: mapboxgl.accessToken,
+            unit: 'metric',
+            profile: 'mapbox/driving'
+        });
+
+        let geoJsonData_tables;
+        fetch(table_geojson_url)
+            .then(response => response.json())
+            .then(data => {
+                geoJsonData_tables = data;
+            });
+
+        let geoJsonData_icr;
+        fetch(icr_geojson_url)
+            .then(response => response.json())
+            .then(data => {
+                geoJsonData_icr = data;
+            });
+        let geoJsonData_road_map;
+        fetch(road_map_geojson_url)
+            .then(response => response.json())
+            .then(data => {
+                geoJsonData_road_map = data;
+            });
+            
+        // Add live location tracking
+        let userMarker;
+        let watchId;
+        let userInteracted = false;
+
+        function updateUserLocation(position) {
+            const userLocation = [position.coords.longitude, position.coords.latitude];
+
+            if (!userMarker) {
+                userMarker = new mapboxgl.Marker({ element: createRoundMarker() })
+                    .setLngLat(userLocation)
+                    .addTo(map);
+            } else {
+                userMarker.setLngLat(userLocation);
+            }
+
+            if (!userInteracted) {
+                map.flyTo({
+                    center: userLocation,
+                    zoom: 20
+                });
+            }
+        }
+
+        function createRoundMarker() {
+            const marker = document.createElement('div');
+            marker.className = 'round-marker';
+            return marker;
+        }
+
+        function handleLocationError(error) {
+            console.error('Error retrieving location:', error);
+        }
+
+        function startTracking() {
+            if (navigator.geolocation) {
+                watchId = navigator.geolocation.watchPosition(updateUserLocation, handleLocationError, { enableHighAccuracy: true });
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+            }
+        }
+
+        function stopTracking() {
+            if (navigator.geolocation && watchId) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+        }
+
+        document.getElementById('location-icon').addEventListener('click', () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    updateUserLocation(position);
+                    userInteracted = false; // reset user interaction
+                    startTracking();
+                }, handleLocationError, { enableHighAccuracy: true });
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+            }
+        });
+
+        // Detect user interactions with the map
+        map.on('dragstart', () => {
+            userInteracted = true;
+        });
+
+        map.on('zoomstart', () => {
+            userInteracted = true;
+        });
+
+        // Initialize map without live tracking
+        stopTracking();
+
+        
+        map.on('load', () => {
+            map.addSource('shapefile-source_tables', {
+                'type': 'geojson',
+                'data': table_geojson_url
+            });
+            map.addSource('shapefile-icr', {
+                'type': 'geojson',
+                'data': icr_geojson_url
+            });
+
+            map.addLayer({
+                'id': 'shapefile-layer_tables',
+                'type': 'fill',
+                'source': 'shapefile-source_tables',
+                'layout': {},
+                'paint': {
+                    'fill-color': '#3a95dc',
+                    'fill-opacity': 0.8
+                }
+            });
+
+            map.addLayer({
+                'id': 'outline_tables',
+                'type': 'line',
+                'source': 'shapefile-source_tables',
+                'layout': {},
+                'paint': {
+                    'line-color': '#000',
+                    'line-width': 1
+                }
+            });
+
+            map.on('click', 'shapefile-layer_tables', (e) => {
+                const coordinates = e.lngLat;
+                const properties = e.features[0].properties;
+                new mapboxgl.Popup()
+                    .setLngLat(coordinates)
+                    .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
+                    .addTo(map);
+                    map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                                    'case',
+                                    // ['==', ['get', 'node_id'], properties.node_id],
+                                    // '#ff0000',
+                                    ['==', ['get', 'str_id'], properties.str_id],
+                                    '#ff0000',
+                                    '#3a95dc'
+                                ]);
+            });
+
+            map.on('mouseenter', 'shapefile-layer_tables', () => {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+
+            map.on('mouseleave', 'shapefile-layer_tables', () => {
+                map.getCanvas().style.cursor = '';
+            });
+
+            map.addLayer({
+                'id': 'shapefile-layer_icr',
+                'type': 'fill',
+                'source': 'shapefile-icr',
+                'layout': {},
+                'paint': {
+                    'fill-color': '#E74C3C',
+                    'fill-opacity': 0.6
+                }
+            });
+            function highlight_icr_i() {
+                const features = geoJsonData_icr.features;
+                const paintExpression = ['case'];
+
+                features.forEach((feature) => {
+                    const icr = "ICR" + feature.properties.icr;
+                    const icr_color = icr_color_json[icr]  || default_icr_color;
+                    // console.log (icr, icr_color)
+                    paintExpression.push(
+                        ['==', ['get', 'icr'], feature.properties.icr],
+                        icr_color
+                    );
+                });
+
+                paintExpression.push('#000000'); // Default color if no matches
+
+                map.setPaintProperty('shapefile-layer_icr', 'fill-color', paintExpression);
+            }
+            highlight_icr_i()
+            map.addLayer({
+                'id': 'outline_icr',
+                'type': 'line',
+                'source': 'shapefile-icr',
+                'layout': {},
+                'paint': {
+                    'line-color': '#000',
+                    'line-width': 1
+                }
+            });
+
+            // Add a symbol layer for text labels
+            map.addLayer({
+                'id': 'label-icr',
+                'type': 'symbol',
+                'source': 'shapefile-icr',
+                'layout': {
+                    'text-field': [
+                                    'format',
+                                    ['case',
+                                        ['==', ['get', 'icr'], 'MCR' && 'Jakson O&M Office'],
+                                        // ['==', ['get', 'icr'], 'Jakson O&M Office'], 
+                                        '', 
+                                        'ICR '
+                                    ],
+                                    {},
+                                    ['get', 'icr'],
+                                    {}
+                                ],
+                 
+                    'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                    'text-size': 12,
+                    'text-offset': [0, 0], // Adjust the text position
+                    'text-anchor': 'top'
+                },
+                'paint': {
+                    'text-color': '#F84C40', // Inner text color (white)
+                    'text-halo-color': '#000000', // Outer line color (black)
+                    'text-halo-width': 1, // Width of the outer line
+                    'text-halo-blur': 0 // Halo blur
+                }
+            });
+
+
+            map.on('click', 'shapefile-layer_icr', (e) => {
+                const coordinates = e.lngLat;
+                const properties = e.features[0].properties;
+                new mapboxgl.Popup()
+                    .setLngLat(coordinates)
+                    .setHTML(`<br /><strong>ICR :</strong> ${properties.icr}`)
+                    .addTo(map);
+                if (userMarker) {
+                            directions.setOrigin(userMarker.getLngLat());
+                            directions.setDestination(coordinates);
+                            map.addControl(directions, 'top-left');
+                        }
+            });
+            // console.log(geoJsonData_road_map);
+            map.addSource('roadmap', {
+                'type': 'geojson',
+                'data': geoJsonData_road_map
+            });
+
+            map.addLayer({
+                'id': 'roadmap-layer',
+                'type': 'line',
+                'source': 'roadmap',
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#ff0000', // Change this for desired color
+                    'line-width': 5, // Change this for desired line width
+                    'line-opacity': 1 // Change this for desired opacity (0-1)
+                }
+            });
+            populateDropdowns(geoJsonData_tables);
+            document.getElementById('search-button').addEventListener('click', () => {
+                const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
+                if (searchValue) {
+                    // fetch(table_geojson_url)
+                    //     .then(response => response.json())
+                    //     .then(data => {
+                            const features = geoJsonData_tables.features;
+                            var search_attri = "";
+                            const feature = features.find(f => {
+                                const nodeId = f.properties.node_id !== undefined ? String(f.properties.node_id).toLowerCase() : '';
+                                const strId = f.properties.str_id !== undefined ? String(f.properties.str_id).toLowerCase() : '';
+                                const rowcolId = f.properties.row_col !== undefined ? String(f.properties.row_col).toLowerCase() : '';
+                                if (nodeId === searchValue){
+                                    search_attri = "nodeid";
+                                    return true;
+                                }
+                                if (strId === searchValue){
+                                    search_attri = "strid";
+                                    return true;
+                                }
+                                if (rowcolId === searchValue){
+                                    search_attri = "rcid";
+                                    return true;
+                                }
+                                // return nodeId === searchValue || strId === searchValue || rowcolId === searchValue;
+                            });
+                            console.log(`Searching for: ${searchValue}`);
+                            if (feature) {
+                                console.log(`Feature found: ${JSON.stringify(feature.properties)}`);
+                                const coordinates = feature.geometry.coordinates[0][0][0];
+                                const bounds = feature.geometry.coordinates[0][0].reduce((bounds, coord) => {
+                                    return bounds.extend(coord);
+                                }, new mapboxgl.LngLatBounds(coordinates, coordinates));
+                                // const combinedBounds = selectedFeatures.reduce((bounds, feature) => {
+                                //     const coordinates = feature.geometry.coordinates[0][0];
+                                //     const featureBounds = coordinates.reduce((bounds, coord) => {
+                                //         return bounds.extend(coord);
+                                //     }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+                                //     return bounds.extend(featureBounds);
+                                // }, new mapboxgl.LngLatBounds());
+
+                                map.fitBounds(bounds, {
+                                    padding: 150
+                                });
+                                if (search_attri === "strid"){
+                                map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                                    'case',
+                                    // ['==', ['get', 'node_id'], feature.properties.node_id],
+                                    // '#ff0000',
+                                    ['==', ['get', 'str_id'], feature.properties.str_id],
+                                    '#ff0000',
+                                    // ['==', ['get', 'row_col'], feature.properties.row_col],
+                                    // '#ff0000',
+                                    '#3a95dc'
+                                ]);}
+                                if (search_attri === "nodeid"){
+                                map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                                    'case',
+                                    ['==', ['get', 'node_id'], feature.properties.node_id],
+                                    '#ff0000',
+                                    '#3a95dc'
+                                ]);}
+                                if (search_attri === "rcid"){
+                                map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                                    'case',
+                                    ['==', ['get', 'row_col'], feature.properties.row_col],
+                                    '#ff0000',
+                                    '#3a95dc'
+                                ]);}
+                                const properties = feature.properties;
+                                new mapboxgl.Popup()
+                                    .setLngLat(bounds.getCenter())
+                                    .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
+                                    .addTo(map);
+                                console.log('Match found and highlighted');
+                            } else {
+                                console.log('No matching polygon found');
+                                alert('No matching table found');
+                            }
+                        // })
+                        // .catch(err => {
+                        //     console.error('Error fetching GeoJSON data:', err);
+                        // });
+                } else {
+                    alert('Please enter a valid id');
+                }
+            });
+
+            
+            
+            
+
+        });
+        function toggleRadioButtons() {
+                const radioButtons = document.getElementById('radioButtons');
+                radioButtons.style.display = radioButtons.style.display === 'block' ? 'none' : 'block';
+            }
+        function logOption(radio) {
+                console.log('Selected option:', radio.value);
+                if(radio.value === 'Option 1'){
+                    highlight_icr();
+                }
+                if(radio.value === 'Option 2'){
+                    highlight_master();
+                }
+            }
+        // function highlight_equip(){
+        //         const features = geoJsonData_tables.features;
+        //         features.forEach((feature, index) => {
+        //             const icr = "ICR" + feature.properties.B;
+        //             const icr_color = icr_color_json.icr;
+        //             map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+        //                         'case',
+        //                             ['==', ['get', 'B'], feature.properties.B],
+        //                             icr_color,
+        //                             null
+        //                         ]
+        //                         );
+        //         });
+        // }
+        function highlight_icr() {
+            const features = geoJsonData_tables.features;
+            const paintExpression = ['case'];
+
+            features.forEach((feature) => {
+                const icr = "ICR" + feature.properties.B;
+                const icr_color = icr_color_json[icr]  || default_table_color;
+                // console.log (icr, icr_color)
+                paintExpression.push(
+                    ['==', ['get', 'B'], feature.properties.B],
+                    icr_color
+                );
+            });
+
+            paintExpression.push('#000000'); // Default color if no matches
+
+            map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintExpression);
+        }
+        function highlight_master() {
+            const features = geoJsonData_tables.features;
+            const paintExpressionm = ['case'];
+
+            features.forEach((feature) => {
+                const master = "M" + feature.properties.tkr_master;
+                const master_color = master_color_json[master]  || default_table_color;
+                // console.log (master, master_color)
+                paintExpressionm.push(
+                    ['==', ['get', 'tkr_master'], feature.properties.tkr_master],
+                    master_color
+                );
+            });
+
+            paintExpressionm.push('#000000'); // Default color if no matches
+
+            map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintExpressionm);
+        }
+        
+        function populateDropdowns(data) {
+            const BDropdown = document.getElementById('B-dropdown');
+            const INVDropdown = document.getElementById('INV-dropdown');
+            const SCBDropdown = document.getElementById('SCB-dropdown');
+            const STRDropdown = document.getElementById('STR-dropdown');
+            const MDropdown = document.getElementById('M-dropdown');
+
+            var Bs = new Set();
+            var INVs = new Set();
+            var SCBs = new Set();
+            var STRs = new Set();
+            var Ms = new Set();
+
+            data.features.forEach(feature => {
+                if (feature.properties.B) Bs.add(feature.properties.B);
+                if (feature.properties.INV) INVs.add(feature.properties.INV);
+                if (feature.properties.SCB) SCBs.add(feature.properties.SCB);
+                if (feature.properties.STR) STRs.add(feature.properties.STR);
+                if (feature.properties.tkr_master) Ms.add(feature.properties.tkr_master);
+            });
+
+            function data_sort(in_set){
+                const outArray = [...in_set]; 
+                outArray.sort((a, b) => a - b);
+                const sortedset = new Set(outArray);
+                return sortedset;
+            }
+            // Bs.sort((a, b) => a - b);
+            Bs = data_sort(Bs)
+            Bs.forEach(B => {
+                const option = document.createElement('option');
+                option.value = B;
+                option.textContent = B;
+                BDropdown.appendChild(option);
+            });
+            INVs = data_sort(INVs)
+            INVs.forEach(INV => {
+                const option = document.createElement('option');
+                option.value = INV;
+                option.textContent = INV;
+                INVDropdown.appendChild(option);
+            });
+            SCBs = data_sort(SCBs)
+            SCBs.forEach(SCB => {
+                const option = document.createElement('option');
+                option.value = SCB;
+                option.textContent = SCB;
+                SCBDropdown.appendChild(option);
+            });
+            STRs = data_sort(STRs)
+            STRs.forEach(STR => {
+                const option = document.createElement('option');
+                option.value = STR;
+                option.textContent = STR;
+                STRDropdown.appendChild(option);
+            });
+            Ms = data_sort(Ms)
+            Ms.forEach(M => {
+                const option = document.createElement('option');
+                option.value = M;
+                option.textContent = M;
+                MDropdown.appendChild(option);
+            });
+        }
+
+        
+        function filterPolygons() {
+            console.log('DROPDOWN STATUS :', dropdown_status);
+            const Bs = dropdown_status['B'];
+            const INVs = dropdown_status['INV'];
+            const SCBs = dropdown_status['SCB'];
+            const STRs = dropdown_status['STR'];
+            const Ms = dropdown_status['M'];
+
+            // if(Bs!=='' || INVs!=='' || SCBs!=='' || STRs!==''|| Ms!==''){
+                let selectedFeatures = geoJsonData_tables.features;
+                if (Bs) {
+                    selectedFeatures = selectedFeatures.filter(f => f.properties.B === Bs);
+                }
+
+                if (INVs) {
+                    selectedFeatures = selectedFeatures.filter(f => f.properties.INV === INVs);
+                }
+
+                if (SCBs) {
+                    selectedFeatures = selectedFeatures.filter(f => f.properties.SCB === SCBs);
+                }
+                if (STRs) {
+                    selectedFeatures = selectedFeatures.filter(f => f.properties.STR === STRs);
+                }
+                if (Ms) {
+                    selectedFeatures = selectedFeatures.filter(f => ''+f.properties.tkr_master === Ms);
+                }
+            // }
+
+            if (selectedFeatures.length > 0) {
+                // console.log(selectedFeatures)
+                // Combine the bounds of all selected features
+                const combinedBounds = selectedFeatures.reduce((bounds, feature) => {
+                    const coordinates = feature.geometry.coordinates[0][0];
+                    const featureBounds = coordinates.reduce((bounds, coord) => {
+                        return bounds.extend(coord);
+                    }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+                    return bounds.extend(featureBounds);
+                }, new mapboxgl.LngLatBounds());
+
+                // Fit map to combined bounds
+                map.fitBounds(combinedBounds, {
+                    padding: 50
+                });
+
+                // Update paint property for selected features
+                map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                    'case',
+                    ...selectedFeatures.flatMap(feature => [
+                        ['==', ['get', 'str_id'], feature.properties.str_id],
+                        '#ff0000'
+                    ]),
+                    default_table_color || '#3a95dc'
+                ]);
+            if (selectedFeatures.length === 1){
+                selectedFeatures.forEach(feature => {
+                    const coordinates = feature.geometry.coordinates[0][0];
+                    const bounds = coordinates.reduce((bounds, coord) => {
+                        return bounds.extend(coord);
+                    }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+
+                    const properties = feature.properties;
+                    new mapboxgl.Popup()
+                        .setLngLat(bounds.getCenter())
+                        .setHTML(`<strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID:</strong> ${properties.node_id}`)
+                        .addTo(map);
+                });
+            }
+            } else {
+                alert('No matching polygons found');
+            }
+        }
+        var dropdown_status = {'B':'','INV':'','SCB':'','STR':'','M':''}
+        document.getElementById('B-dropdown').addEventListener('change', (e) => {
+            dropdown_status["B"] = e.target.value;
+            filterPolygons();
+        });
+
+        document.getElementById('INV-dropdown').addEventListener('change', (e) => {
+            dropdown_status["INV"] = e.target.value;
+            filterPolygons();
+        });
+
+        document.getElementById('SCB-dropdown').addEventListener('change', (e) => {
+            dropdown_status["SCB"] = e.target.value;
+            filterPolygons();
+        });
+
+        document.getElementById('STR-dropdown').addEventListener('change', (e) => {
+            dropdown_status["STR"] = e.target.value;
+            filterPolygons();
+        });
+        document.getElementById('M-dropdown').addEventListener('change', (e) => {
+            dropdown_status["M"] = e.target.value;
+            filterPolygons();
+        });
+        
+    </script>
+</body>
+</html>
