@@ -200,7 +200,7 @@
         <!-- <label><input type="radio" name="options" value="Option 3" onclick="logOption(this)"> Option 3</label> -->
     </div>
     <script>
-        const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V11.geojson';
+        const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V12.geojson';
         const icr_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs_V2.geojson';
         const road_map_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_road_map_V1.geojson';
         mapboxgl.accessToken = 'pk.eyJ1Ijoic3ViaGFzaDU0IiwiYSI6ImNseGx1Y3JyMDAyMDcya3M2ZHpxdHFsN28ifQ.knRGnsgFrZMb-_gUb0dQdA';
@@ -568,6 +568,14 @@
                     //     .then(response => response.json())
                     //     .then(data => {
                             const features = geoJsonData_tables.features;
+                            // if (searchValue.includes(",")) {
+                            //     const search_values = searchValue.split(",");
+                            //     search_values.forEach(search_value => {
+                            //         console.log(search_value);
+                            //     });
+                            //     } else {
+                            //     console.log("only one search.");
+                            //     }
                             var search_attri = "";
                             const feature = features.find(f => {
                                 const nodeId = f.properties.node_id !== undefined ? String(f.properties.node_id).toLowerCase() : '';
@@ -648,10 +656,6 @@
                     alert('Please enter a valid id');
                 }
             });
-
-            
-            
-            
 
         });
         function toggleRadioButtons() {
