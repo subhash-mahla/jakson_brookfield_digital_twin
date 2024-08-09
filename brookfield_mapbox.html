@@ -140,11 +140,12 @@
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css" type="text/css">
     <div id="map"></div>
     <div class="search-container">
-        <input type="text" id="search-input" placeholder="Search by node, str_id, row-col" />
-        <!-- <button id="search-button">Search</button> -->
-        <button id="search-button" type="submit"><i class="fa fa-search"></i></button>
+        
         <div class="dropdown-container">
             <!-- <label for="B-dropdown">B:</label> -->
+        <select id="P-dropdown">
+            <option value="">P</option>
+        </select>
         <select id="B-dropdown">
             <option value="">B</option>
         </select>
@@ -165,6 +166,10 @@
 
         <!-- <button id="filter-button">Apply Filter</button> -->
         </div>
+        <input type="text" id="search-input" placeholder="Search by node, str_id, row-col" />
+        <!-- <button id="search-button">Search</button> -->
+        <button id="search-button" type="submit"><i class="fa fa-search"></i></button>
+        <button id="filter-search-button" type="submit"><i class="fa fa-filter"></i></button>
     </div>
     <div class="map-label">
     <!-- <div class="dev-name"> -->
@@ -292,6 +297,7 @@
         
         const default_table_color = '#3a95dc'
         const default_icr_color = '#3a95dc'
+        var Filtered_Features = ''
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/subhash54/clxrgo01v00oh01qw33lcc44s', // replace with your Mapbox style URL
@@ -434,7 +440,8 @@
                 const properties = e.features[0].properties;
                 new mapboxgl.Popup()
                     .setLngLat(coordinates)
-                    .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
+                    // .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
+                    .setHTML(popup_design_complete(properties))
                     .addTo(map);
                     map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
                                     'case',
@@ -560,22 +567,139 @@
                     'line-opacity': 1 // Change this for desired opacity (0-1)
                 }
             });
+
             populateDropdowns(geoJsonData_tables);
+            function popup_design_complete(properties) {
+                return `<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`
+            }
+            function highlight_features (selectedFeatures, showPopups){
+                const popups = document.getElementsByClassName("mapboxgl-popup");
+                if (popups.length) {
+                    for (let i = 0; i < popups.length; i++) {
+                        const element = popups[i];
+                        // console.log(element)
+                        element.remove();
+                        // Do something with the element
+                    }
+                //     popups.forEach(pop=> {
+                //         pop.remove();
+                // })
+
+                    
+                }
+                if (selectedFeatures.length > 0) {
+                // Combine the bounds of all selected features asynchronously
+                const combineBoundsAsync = async () => {
+                    const combinedBounds = new mapboxgl.LngLatBounds();
+                    for (let i = 0; i < selectedFeatures.length; i++) {
+                        const feature = selectedFeatures[i];
+                        const coordinates = feature.geometry.coordinates[0][0];
+                        const featureBounds = coordinates.reduce((bounds, coord) => {
+                            return bounds.extend(coord);
+                        }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+
+                        combinedBounds.extend(featureBounds);
+
+                        // Yield to the browser to avoid blocking the UI
+                        if (i % 10 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+                    }
+                    return combinedBounds;
+                };
+
+                // Fit map to combined bounds
+                combineBoundsAsync().then(combinedBounds => {
+                    map.fitBounds(combinedBounds, { padding: 50 });
+                });
+
+                // Update paint property for selected features asynchronously
+                const updatePaintPropertyAsync = async () => {
+                    const paintProperty = [
+                        'case',
+                        ...selectedFeatures.flatMap(feature => [
+                            ['==', ['get', 'str_id'], feature.properties.str_id],
+                            '#ff0000'
+                        ]),
+                        default_table_color || '#3a95dc'
+                    ];
+
+                    map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintProperty);
+                };
+
+                updatePaintPropertyAsync();
+                if (showPopups){
+                    selectedFeatures.forEach(feature => {
+                        const coordinates = feature.geometry.coordinates[0][0];
+                        const bounds = coordinates.reduce((bounds, coord) => {
+                            return bounds.extend(coord);
+                        }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+
+                        const properties = feature.properties;
+                        new mapboxgl.Popup()
+                            .setLngLat(bounds.getCenter())
+                            // .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID:</strong> ${properties.node_id}`)
+                            .setHTML(popup_design_complete(properties))
+                            .addTo(map);
+                    });
+                }
+                } else {
+                    alert('No matching polygons found');
+                }
+            }
+            document.getElementById('filter-search-button').addEventListener('click', () => {
+                const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
+                if(Filtered_Features.length){
+                    perform_search(searchValue, Filtered_Features)
+                }else{
+                    perform_search(searchValue, geoJsonData_tables.features)
+                }
+
+            });
+
             document.getElementById('search-button').addEventListener('click', () => {
                 const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
+                perform_search (searchValue, geoJsonData_tables.features)
+            });
+
+            function perform_search (searchValue, features) {
                 if (searchValue) {
                     // fetch(table_geojson_url)
                     //     .then(response => response.json())
                     //     .then(data => {
-                            const features = geoJsonData_tables.features;
-                            // if (searchValue.includes(",")) {
-                            //     const search_values = searchValue.split(",");
-                            //     search_values.forEach(search_value => {
-                            //         console.log(search_value);
-                            //     });
-                            //     } else {
-                            //     console.log("only one search.");
-                            //     }
+                            // const features = geoJsonData_tables.features;
+                            const searchSeleFeatures = []
+                            if (searchValue.includes(",")) {
+                                const search_values = searchValue.replace(/\s+/g, '').split(",");
+                                search_values.forEach(search_value => {
+                                    const feature = features.find(f => {
+                                        const nodeId = f.properties.node_id !== undefined ? String(f.properties.node_id).toLowerCase() : '';
+                                        // const strId = f.properties.str_id !== undefined ? String(f.properties.str_id).toLowerCase() : '';
+                                        // const rowcolId = f.properties.row_col !== undefined ? String(f.properties.row_col).toLowerCase() : '';
+                                        if (nodeId === search_value){
+                                            search_attri = "nodeid";
+                                            searchSeleFeatures.push(f);
+                                            // return true;
+
+                                        }
+                                        // if (strId === searchValue){
+                                        //     search_attri = "strid";
+                                        //     return true;
+                                        // }
+                                        // if (rowcolId === searchValue){
+                                        //     search_attri = "rcid";
+                                        //     return true;
+                                        // }
+                                        // return nodeId === searchValue || strId === searchValue || rowcolId === searchValue;
+                                    });
+                                    // searchSeleFeatures.push(feature);
+                                    // console.log(search_value);
+                                    // console.log(feature);
+                                });
+                                // console.log(searchSeleFeatures)
+                                highlight_features(searchSeleFeatures, true);
+                                } 
+                            else {
+                            console.log("only one search.");
+                            
                             var search_attri = "";
                             const feature = features.find(f => {
                                 const nodeId = f.properties.node_id !== undefined ? String(f.properties.node_id).toLowerCase() : '';
@@ -583,68 +707,77 @@
                                 const rowcolId = f.properties.row_col !== undefined ? String(f.properties.row_col).toLowerCase() : '';
                                 if (nodeId === searchValue){
                                     search_attri = "nodeid";
-                                    return true;
+                                    // return true;
                                 }
                                 if (strId === searchValue){
                                     search_attri = "strid";
-                                    return true;
+                                    // return true;
                                 }
                                 if (rowcolId === searchValue){
                                     search_attri = "rcid";
-                                    return true;
+                                    // return true;
                                 }
                                 // return nodeId === searchValue || strId === searchValue || rowcolId === searchValue;
+                                if(nodeId === searchValue || strId === searchValue || rowcolId === searchValue){
+                                    searchSeleFeatures.push(f);
+                                }
                             });
                             console.log(`Searching for: ${searchValue}`);
-                            if (feature) {
-                                console.log(`Feature found: ${JSON.stringify(feature.properties)}`);
-                                const coordinates = feature.geometry.coordinates[0][0][0];
-                                const bounds = feature.geometry.coordinates[0][0].reduce((bounds, coord) => {
-                                    return bounds.extend(coord);
-                                }, new mapboxgl.LngLatBounds(coordinates, coordinates));
-                                // const combinedBounds = selectedFeatures.reduce((bounds, feature) => {
-                                //     const coordinates = feature.geometry.coordinates[0][0];
-                                //     const featureBounds = coordinates.reduce((bounds, coord) => {
-                                //         return bounds.extend(coord);
-                                //     }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
-                                //     return bounds.extend(featureBounds);
-                                // }, new mapboxgl.LngLatBounds());
+                            // console.log(feature)
+                            if (searchSeleFeatures.length){
+                                highlight_features(searchSeleFeatures, true)
+                            }
+                            // if (feature) {
+                            //     console.log(`Feature found: ${JSON.stringify(feature.properties)}`);
+                            //     const coordinates = feature.geometry.coordinates[0][0][0];
+                            //     const bounds = feature.geometry.coordinates[0][0].reduce((bounds, coord) => {
+                            //         return bounds.extend(coord);
+                            //     }, new mapboxgl.LngLatBounds(coordinates, coordinates));
+                            //     // const combinedBounds = selectedFeatures.reduce((bounds, feature) => {
+                            //     //     const coordinates = feature.geometry.coordinates[0][0];
+                            //     //     const featureBounds = coordinates.reduce((bounds, coord) => {
+                            //     //         return bounds.extend(coord);
+                            //     //     }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+                            //     //     return bounds.extend(featureBounds);
+                            //     // }, new mapboxgl.LngLatBounds());
 
-                                map.fitBounds(bounds, {
-                                    padding: 150
-                                });
-                                if (search_attri === "strid"){
-                                map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
-                                    'case',
-                                    // ['==', ['get', 'node_id'], feature.properties.node_id],
-                                    // '#ff0000',
-                                    ['==', ['get', 'str_id'], feature.properties.str_id],
-                                    '#ff0000',
-                                    // ['==', ['get', 'row_col'], feature.properties.row_col],
-                                    // '#ff0000',
-                                    '#3a95dc'
-                                ]);}
-                                if (search_attri === "nodeid"){
-                                map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
-                                    'case',
-                                    ['==', ['get', 'node_id'], feature.properties.node_id],
-                                    '#ff0000',
-                                    '#3a95dc'
-                                ]);}
-                                if (search_attri === "rcid"){
-                                map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
-                                    'case',
-                                    ['==', ['get', 'row_col'], feature.properties.row_col],
-                                    '#ff0000',
-                                    '#3a95dc'
-                                ]);}
-                                const properties = feature.properties;
-                                new mapboxgl.Popup()
-                                    .setLngLat(bounds.getCenter())
-                                    .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
-                                    .addTo(map);
-                                console.log('Match found and highlighted');
-                            } else {
+                            //     map.fitBounds(bounds, {
+                            //         padding: 150
+                            //     });
+                            //     if (search_attri === "strid"){
+                            //     map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                            //         'case',
+                            //         // ['==', ['get', 'node_id'], feature.properties.node_id],
+                            //         // '#ff0000',
+                            //         ['==', ['get', 'str_id'], feature.properties.str_id],
+                            //         '#ff0000',
+                            //         // ['==', ['get', 'row_col'], feature.properties.row_col],
+                            //         // '#ff0000',
+                            //         '#3a95dc'
+                            //     ]);}
+                            //     if (search_attri === "nodeid"){
+                            //     map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                            //         'case',
+                            //         ['==', ['get', 'node_id'], feature.properties.node_id],
+                            //         '#ff0000',
+                            //         '#3a95dc'
+                            //     ]);}
+                            //     if (search_attri === "rcid"){
+                            //     map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                            //         'case',
+                            //         ['==', ['get', 'row_col'], feature.properties.row_col],
+                            //         '#ff0000',
+                            //         '#3a95dc'
+                            //     ]);}
+                            //     const properties = feature.properties;
+                            //     new mapboxgl.Popup()
+                            //         .setLngLat(bounds.getCenter())
+                            //         // .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
+                            //         .setHTML(popup_design_complete(properties))
+                            //         .addTo(map);
+                            //     console.log('Match found and highlighted');
+                            // } 
+                            else {
                                 console.log('No matching polygon found');
                                 alert('No matching table found');
                             }
@@ -652,11 +785,12 @@
                         // .catch(err => {
                         //     console.error('Error fetching GeoJSON data:', err);
                         // });
+                            }
                 } else {
                     alert('Please enter a valid id');
                 }
-            });
-
+            };
+        
         });
         function toggleRadioButtons() {
                 const radioButtons = document.getElementById('radioButtons');
@@ -735,12 +869,14 @@
         }
         
         function populateDropdowns(data) {
+            const PDropdown = document.getElementById('P-dropdown');
             const BDropdown = document.getElementById('B-dropdown');
             const INVDropdown = document.getElementById('INV-dropdown');
             const SCBDropdown = document.getElementById('SCB-dropdown');
             const STRDropdown = document.getElementById('STR-dropdown');
             const MDropdown = document.getElementById('M-dropdown');
 
+            var Ps = new Set();
             var Bs = new Set();
             var INVs = new Set();
             var SCBs = new Set();
@@ -748,6 +884,7 @@
             var Ms = new Set();
 
             data.features.forEach(feature => {
+                if (feature.properties.phase) Ps.add(feature.properties.phase);
                 if (feature.properties.B) Bs.add(feature.properties.B);
                 if (feature.properties.INV) INVs.add(feature.properties.INV);
                 if (feature.properties.SCB) SCBs.add(feature.properties.SCB);
@@ -762,6 +899,13 @@
                 return sortedset;
             }
             // Bs.sort((a, b) => a - b);
+            Ps = data_sort(Ps)
+            Ps.forEach(P => {
+                const option = document.createElement('option');
+                option.value = P;
+                option.textContent = P;
+                PDropdown.appendChild(option);
+            });
             Bs = data_sort(Bs)
             Bs.forEach(B => {
                 const option = document.createElement('option');
@@ -802,6 +946,7 @@
         
         function filterPolygons() {
             console.log('DROPDOWN STATUS :', dropdown_status);
+            const Ps = dropdown_status['P'];
             const Bs = dropdown_status['B'];
             const INVs = dropdown_status['INV'];
             const SCBs = dropdown_status['SCB'];
@@ -810,6 +955,10 @@
 
             // if(Bs!=='' || INVs!=='' || SCBs!=='' || STRs!==''|| Ms!==''){
                 let selectedFeatures = geoJsonData_tables.features;
+                if (Ps) {
+                    selectedFeatures = selectedFeatures.filter(f => String(f.properties.phase) === Ps);
+                }
+
                 if (Bs) {
                     selectedFeatures = selectedFeatures.filter(f => f.properties.B === Bs);
                 }
@@ -893,8 +1042,8 @@
                 };
 
                 updatePaintPropertyAsync();
-// }
-
+// }        
+            Filtered_Features = selectedFeatures
             if (selectedFeatures.length === 1){
                 selectedFeatures.forEach(feature => {
                     const coordinates = feature.geometry.coordinates[0][0];
@@ -905,7 +1054,8 @@
                     const properties = feature.properties;
                     new mapboxgl.Popup()
                         .setLngLat(bounds.getCenter())
-                        .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID:</strong> ${properties.node_id}`)
+                        // .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID:</strong> ${properties.node_id}`)
+                        .setHTML(popup_design_complete(properties))
                         .addTo(map);
                 });
             }
@@ -913,7 +1063,12 @@
                 alert('No matching polygons found');
             }
         }
-        var dropdown_status = {'B':'','INV':'','SCB':'','STR':'','M':''}
+        var dropdown_status = {'P':'', 'B':'','INV':'','SCB':'','STR':'','M':''}
+        document.getElementById('P-dropdown').addEventListener('change', (e) => {
+            dropdown_status["P"] = e.target.value;
+            filterPolygons();
+        });
+
         document.getElementById('B-dropdown').addEventListener('change', (e) => {
             dropdown_status["B"] = e.target.value;
             filterPolygons();
