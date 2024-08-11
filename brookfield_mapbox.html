@@ -570,7 +570,8 @@
 
             populateDropdowns(geoJsonData_tables);
             function popup_design_complete(properties) {
-                return `<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`
+                return `<strong>P: </strong> ${properties.phase}<strong>  Row-Col: </strong> ${properties.row_col}<br /><strong>Str: </strong> ${properties.str_id}<br /><strong>Node: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`
+                // return `<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`
             }
             function highlight_features (selectedFeatures, showPopups){
                 const popups = document.getElementsByClassName("mapboxgl-popup");
