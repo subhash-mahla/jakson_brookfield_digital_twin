@@ -19,7 +19,8 @@
             top: 10px;
             left: 10px;
             z-index: 1;
-            background: rgba(1, 163, 244, 0.436);
+            /* background: rgba(1, 163, 244, 0.436); */
+            background-image: linear-gradient(180deg, rgba(0, 149, 255, 0.6), rgba(13, 255, 0, 0.6));
             padding: 3px;
             border-radius: 3px;
             box-shadow: 0 0 5px rgba(0,0,0,0.3);
@@ -41,6 +42,24 @@
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
             cursor: pointer;
         } */
+        .round-reload-button {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 10px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #f70202;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(244, 1, 1, 0.436); /* Semi-transparent */
+        }
         .location-icon-button {
             position: absolute;
             display: inline-block;
@@ -66,7 +85,7 @@
             border: 2px solid white;
             border-radius: 50%;
         }
-        .round-option-button {
+        .round-option-button-label {
             position: absolute;
             display: inline-block;
             width: 30px;
@@ -84,15 +103,15 @@
             cursor: pointer;
             background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
         }
-        .round-reload-button {
+        .round-option-button-highlight {
             position: absolute;
             display: inline-block;
             width: 30px;
             height: 30px;
-            top: 10px;
+            top: 130px;
             right: 10px;
             border-radius: 50%;
-            border: 2px solid #f70202;
+            border: 2px solid #02a1f7;
             /* border: 2px solid #C0C0C0;
             border: 2px solid #00ffae; */
             text-align: center;
@@ -100,13 +119,13 @@
             font-size: 24px;
             text-emphasis-color: #02a1f7;
             cursor: pointer;
-            background-color: rgba(244, 1, 1, 0.436); /* Semi-transparent */
+            background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
         }
         .radio-buttons {
             display: none;
             position: absolute;
-            top: 130px; /* Adjust this value as needed */
-            right: 0;
+            top: 100px; /* Adjust this value as needed */
+            right: 50px;
             background-color: rgba(1, 163, 244, 0.957);
             border: 1px solid #02a1f7;
             padding: 10px;
@@ -117,7 +136,7 @@
             display: block;
             margin: 5px 0;
         }
-        .map-label {
+        .map-label-sm {
             position: absolute;
             bottom: 10px;
             left: 50%;
@@ -130,6 +149,21 @@
             border-radius: 10px;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.406);
             z-index: 1000;
+        }
+        .map-label-status {
+            position: absolute;
+            /* top: 10px;
+            left: 10px; */
+            /* background-color: rgba(255, 255, 255, 0.305); */
+            /* padding: 2px 5px; */
+            color: #ff0000;
+            font-weight: bold;
+            /* font-size: 20px; */
+            font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            /* border-radius: 10px; */
+            /* box-shadow: 0 0 5px rgba(0, 0, 0, 0.406); */
+            /* z-index: 1000; */
+            text-shadow: 1px 1px 1px #c5df03;
         }
             
          
@@ -163,18 +197,25 @@
         <select id="M-dropdown">
             <option value="">M</option>
         </select>
+        <select id="Robo-dropdown">
+            <option value="">Robo</option>
+        </select>
 
         <!-- <button id="filter-button">Apply Filter</button> -->
         </div>
-        <input type="text" id="search-input" placeholder="Search by node, str_id, row-col" />
+        <input type="text" id="search-input" placeholder="Search by node, str_id, row-col, robo" />
         <!-- <button id="search-button">Search</button> -->
         <button id="search-button" type="submit"><i class="fa fa-search"></i></button>
         <button id="filter-search-button" type="submit"><i class="fa fa-filter"></i></button>
+        <div class="map-label-status" id="status-label">
+            Loading ...
+        </div>
     </div>
-    <div class="map-label">
+    <div class="map-label-sm">
     <!-- <div class="dev-name"> -->
         dev. by Subhash Mahla
     </div>
+    
     <div class="location-icon-button" id="location-icon">
         📍
         <!-- <i class="fa fa-location-dot"></i> -->
@@ -196,16 +237,24 @@
     <div class="round-reload-button" onclick="location.reload()">
         <i class="fa fa-rotate-right" style="color: #720000;"></i>
     </div>
-    <div class="round-option-button" onclick="toggleRadioButtons()">
-        <i class="fa fa-bars"></i>
+    <div class="round-option-button-label" id="label-opt" onclick="toggleRadioButtonsLabel()">
+        <i class="fa fa-tags" style="color: #fff707;"></i>
     </div>
-    <div class="radio-buttons" id="radioButtons">
-        <label><input type="radio" name="options" value="Option 1" onclick="logOption(this)"> Highlight ICR</label>
-        <label><input type="radio" name="options" value="Option 2" onclick="logOption(this)"> Highlight Master</label>
-        <!-- <label><input type="radio" name="options" value="Option 3" onclick="logOption(this)"> Option 3</label> -->
+    <div class="round-option-button-highlight" id="highlight-opt" onclick="toggleRadioButtonsHighlight()">
+        <i class="fa fa-bars" style="color: #071cff;"></i>
+    </div>
+    <div class="radio-buttons" id="radioButtons-label">
+        <label><input type="radio" name="options" value="Option 0" onclick="logOptionLabel(this)"> Hide All</label>
+        <label><input type="radio" name="options" value="Option 1" onclick="logOptionLabel(this)"> Show Node IDs</label>
+        <label><input type="radio" name="options" value="Option 2" onclick="logOptionLabel(this)"> Show Robo IDs</label>
+        <label><input type="radio" name="options" value="Option 3" onclick="logOptionLabel(this)"> Show String IDs</label>
+    </div>
+    <div class="radio-buttons" id="radioButtons-highlight">
+        <label><input type="radio" name="options" value="Option 1" onclick="logOptionHighlight(this)"> Highlight ICR</label>
+        <label><input type="radio" name="options" value="Option 2" onclick="logOptionHighlight(this)"> Highlight Master</label>
     </div>
     <script>
-        const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V13.geojson';
+        const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V14.geojson';
         const icr_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs_V2.geojson';
         const road_map_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_road_map_V1.geojson';
         mapboxgl.accessToken = 'pk.eyJ1Ijoic3ViaGFzaDU0IiwiYSI6ImNseGx1Y3JyMDAyMDcya3M2ZHpxdHFsN28ifQ.knRGnsgFrZMb-_gUb0dQdA';
@@ -434,10 +483,35 @@
                     'line-width': 1
                 }
             });
+            change_status_text('Map Loaded')
+            map.addLayer({
+                        'id': 'table-label',
+                        'type': 'symbol',
+                        'source': 'shapefile-source_tables',
+                        'layout': {
+                            'text-field': ['get', 'node_id'],
+                            'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                            'text-size': 10,
+                            'text-offset': [-0.5, 0], // Adjust the text position
+                            'text-justify': 'auto',
+                            'text-anchor': 'top',
+                            'text-rotate': -90, // Rotate the text 90 degrees clockwise
+                            'text-allow-overlap': false, // Prevent text from displaying if it would overlap with other symbols
+                            'text-ignore-placement': false // Prevent text from displaying if it doesn't fit within the polygon
+                        },
+                        'paint': {
+                            'text-color': 'yellow', // Inner text color (white)
+                            'text-halo-color': '#000000', // Outer line color (black)
+                            'text-halo-width': 0.5, // Width of the outer line
+                            'text-halo-blur': 0 // Halo blur
+                        }
+            });
+            map.setLayoutProperty('table-label', 'visibility', 'none');
 
             map.on('click', 'shapefile-layer_tables', (e) => {
                 const coordinates = e.lngLat;
                 const properties = e.features[0].properties;
+                change_status_text(`Selected Tables: 1`)
                 new mapboxgl.Popup()
                     .setLngLat(coordinates)
                     // .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
@@ -523,6 +597,7 @@
                     'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
                     'text-size': 12,
                     'text-offset': [0, 0], // Adjust the text position
+                    'text-justify': 'auto',
                     'text-anchor': 'top'
                 },
                 'paint': {
@@ -570,7 +645,7 @@
 
             populateDropdowns(geoJsonData_tables);
             function popup_design_complete(properties) {
-                return `<strong>P: </strong> ${properties.phase}<strong>  Row-Col: </strong> ${properties.row_col}<br /><strong>Str: </strong> ${properties.str_id}<br /><strong>Node: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`
+                return `<strong>P: </strong> ${properties.phase}<strong>  Row-Col: </strong> ${properties.row_col}<br /><strong>Str: </strong> ${properties.str_id}<br /><strong>Node: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}<br /><strong>Robo ID: </strong> ${properties.robo_id}<br />`
                 // return `<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`
             }
             function highlight_features (selectedFeatures, showPopups){
@@ -582,6 +657,7 @@
                         element.remove();
                         // Do something with the element
                     }
+                    
                 //     popups.forEach(pop=> {
                 //         pop.remove();
                 // })
@@ -589,6 +665,7 @@
                     
                 }
                 if (selectedFeatures.length > 0) {
+                    change_status_text(`Selected Tables: ${selectedFeatures.length}`)
                 // Combine the bounds of all selected features asynchronously
                 const combineBoundsAsync = async () => {
                     const combinedBounds = new mapboxgl.LngLatBounds();
@@ -706,6 +783,7 @@
                                 const nodeId = f.properties.node_id !== undefined ? String(f.properties.node_id).toLowerCase() : '';
                                 const strId = f.properties.str_id !== undefined ? String(f.properties.str_id).toLowerCase() : '';
                                 const rowcolId = f.properties.row_col !== undefined ? String(f.properties.row_col).toLowerCase() : '';
+                                const roboId = f.properties.robo_id !== undefined ? String(f.properties.robo_id).toLowerCase() : '';
                                 if (nodeId === searchValue){
                                     search_attri = "nodeid";
                                     // return true;
@@ -719,7 +797,7 @@
                                     // return true;
                                 }
                                 // return nodeId === searchValue || strId === searchValue || rowcolId === searchValue;
-                                if(nodeId === searchValue || strId === searchValue || rowcolId === searchValue){
+                                if(nodeId === searchValue || strId === searchValue || rowcolId === searchValue || roboId === searchValue){
                                     searchSeleFeatures.push(f);
                                 }
                             });
@@ -793,11 +871,48 @@
             };
         
         });
-        function toggleRadioButtons() {
-                const radioButtons = document.getElementById('radioButtons');
-                radioButtons.style.display = radioButtons.style.display === 'block' ? 'none' : 'block';
+        function change_status_text(new_text){
+            document.getElementById("status-label").textContent = new_text;
+        }
+        function toggleRadioButtonsLabel() {
+                const radioButtonsLabel = document.getElementById('radioButtons-label');
+                radioButtonsLabel.style.display = radioButtonsLabel.style.display === 'block' ? 'none' : 'block';
+                document.getElementById('radioButtons-highlight').style.display = 'none'
             }
-        function logOption(radio) {
+        function toggleRadioButtonsHighlight() {
+                const radioButtonsHighlight = document.getElementById('radioButtons-highlight');
+                radioButtonsHighlight.style.display = radioButtonsHighlight.style.display === 'block' ? 'none' : 'block';
+                document.getElementById('radioButtons-label').style.display = 'none'
+            }
+        function logOptionLabel(radio) {
+            console.log('Selected option:', radio.value);
+            if(radio.value === 'Option 0'){
+                map.setLayoutProperty('table-label', 'visibility', 'none');
+                    // map.setLayoutProperty('table-label', 'text-field', ['get', 'node_id']);
+                    // var visibility = map.getLayoutProperty('table-label', 'visibility');
+
+                    // if (visibility === 'visible') {
+                    //     // If the layer is currently visible, hide it
+                        
+                    // } else {
+                    //     // If the layer is currently hidden, show it
+                    //     map.setLayoutProperty('table-label', 'visibility', 'visible');
+                    // }
+                }
+            if(radio.value === 'Option 1'){
+                    map.setLayoutProperty('table-label', 'text-field', ['get', 'node_id']);
+                    map.setLayoutProperty('table-label', 'visibility', 'visible');
+                }
+            if(radio.value === 'Option 2'){
+                    map.setLayoutProperty('table-label', 'text-field', ['get', 'robo_id']);
+                    map.setLayoutProperty('table-label', 'visibility', 'visible');
+                }
+            if(radio.value === 'Option 3'){
+                    map.setLayoutProperty('table-label', 'text-field', ['get', 'str_id']);
+                    map.setLayoutProperty('table-label', 'visibility', 'visible');
+                }
+            }
+        function logOptionHighlight(radio) {
                 console.log('Selected option:', radio.value);
                 if(radio.value === 'Option 1'){
                     highlight_icr();
@@ -805,6 +920,7 @@
                 if(radio.value === 'Option 2'){
                     highlight_master();
                 }
+                
             }
         // function highlight_icr() {
         //     const features = geoJsonData_tables.features;
@@ -876,6 +992,7 @@
             const SCBDropdown = document.getElementById('SCB-dropdown');
             const STRDropdown = document.getElementById('STR-dropdown');
             const MDropdown = document.getElementById('M-dropdown');
+            const RoboDropdown = document.getElementById('Robo-dropdown');
 
             var Ps = new Set();
             var Bs = new Set();
@@ -883,6 +1000,7 @@
             var SCBs = new Set();
             var STRs = new Set();
             var Ms = new Set();
+            var Robos = new Set();
 
             data.features.forEach(feature => {
                 if (feature.properties.phase) Ps.add(feature.properties.phase);
@@ -891,6 +1009,7 @@
                 if (feature.properties.SCB) SCBs.add(feature.properties.SCB);
                 if (feature.properties.STR) STRs.add(feature.properties.STR);
                 if (feature.properties.tkr_master) Ms.add(feature.properties.tkr_master);
+                if (feature.properties.robo_id) Robos.add(feature.properties.robo_id);
             });
 
             function data_sort(in_set){
@@ -898,6 +1017,22 @@
                 outArray.sort((a, b) => a - b);
                 const sortedset = new Set(outArray);
                 return sortedset;
+            }
+            function customSort_robo(in_set) {
+                const arr = [...in_set]; 
+                return arr.sort((a, b) => {
+                    // Sort based on prefix first
+                    if (a.startsWith("Auto") && b.startsWith("Semi")) {
+                    return -1;
+                    } else if (a.startsWith("Semi") && b.startsWith("Auto")) {
+                    return 1;
+                    }
+
+                    // Sort based on numeric suffix if prefixes are the same
+                    const aNumber = parseInt(a.match(/\d+/)[0]);
+                    const bNumber = parseInt(b.match(/\d+/)[0]);
+                    return aNumber - bNumber;
+                });
             }
             // Bs.sort((a, b) => a - b);
             Ps = data_sort(Ps)
@@ -942,6 +1077,13 @@
                 option.textContent = M;
                 MDropdown.appendChild(option);
             });
+            Robos = customSort_robo(Robos)
+            Robos.forEach(Robo => {
+                const option = document.createElement('option');
+                option.value = Robo;
+                option.textContent = Robo;
+                RoboDropdown.appendChild(option);
+            });
         }
 
         
@@ -953,9 +1095,11 @@
             const SCBs = dropdown_status['SCB'];
             const STRs = dropdown_status['STR'];
             const Ms = dropdown_status['M'];
-
-            // if(Bs!=='' || INVs!=='' || SCBs!=='' || STRs!==''|| Ms!==''){
-                let selectedFeatures = geoJsonData_tables.features;
+            const Robos = dropdown_status['Robo'];
+            
+            let selectedFeatures = {}
+            if(Ps!=='' ||Bs!=='' || INVs!=='' || SCBs!=='' || STRs!==''|| Ms!=='' || Robos!==''){
+                selectedFeatures = geoJsonData_tables.features;
                 if (Ps) {
                     selectedFeatures = selectedFeatures.filter(f => String(f.properties.phase) === Ps);
                 }
@@ -977,7 +1121,75 @@
                 if (Ms) {
                     selectedFeatures = selectedFeatures.filter(f => ''+f.properties.tkr_master === Ms);
                 }
-            // }
+                if (Robos) {
+                    selectedFeatures = selectedFeatures.filter(f => ''+f.properties.robo_id === Robos);
+                }
+
+                if (selectedFeatures.length > 0) {
+                    change_status_text(`Selected Tables: ${selectedFeatures.length}`)
+                    // Combine the bounds of all selected features asynchronously
+                    const combineBoundsAsync = async () => {
+                        const combinedBounds = new mapboxgl.LngLatBounds();
+                        for (let i = 0; i < selectedFeatures.length; i++) {
+                            const feature = selectedFeatures[i];
+                            const coordinates = feature.geometry.coordinates[0][0];
+                            const featureBounds = coordinates.reduce((bounds, coord) => {
+                                return bounds.extend(coord);
+                            }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+
+                            combinedBounds.extend(featureBounds);
+
+                            // Yield to the browser to avoid blocking the UI
+                            if (i % 10 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+                        }
+                        return combinedBounds;
+                    };
+
+                    // Fit map to combined bounds
+                    combineBoundsAsync().then(combinedBounds => {
+                        map.fitBounds(combinedBounds, { padding: 50 });
+                    });
+
+                    // Update paint property for selected features asynchronously
+                    const updatePaintPropertyAsync = async () => {
+                        const paintProperty = [
+                            'case',
+                            ...selectedFeatures.flatMap(feature => [
+                                ['==', ['get', 'str_id'], feature.properties.str_id],
+                                '#ff0000'
+                            ]),
+                            default_table_color || '#3a95dc'
+                        ];
+
+                        map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintProperty);
+                    };
+
+                    updatePaintPropertyAsync();
+    // }        
+                Filtered_Features = selectedFeatures
+                if (selectedFeatures.length === 1){
+                    selectedFeatures.forEach(feature => {
+                        const coordinates = feature.geometry.coordinates[0][0];
+                        const bounds = coordinates.reduce((bounds, coord) => {
+                            return bounds.extend(coord);
+                        }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+
+                        const properties = feature.properties;
+                        new mapboxgl.Popup()
+                            .setLngLat(bounds.getCenter())
+                            // .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID:</strong> ${properties.node_id}`)
+                            .setHTML(popup_design_complete(properties))
+                            .addTo(map);
+                    });
+                }
+                } else {
+                    alert('No matching polygons found');
+                }
+            }
+            else{
+                map.setPaintProperty('shapefile-layer_tables', 'fill-color', default_table_color)
+                change_status_text('Selected Tables: 0')
+            }
 
             // if (selectedFeatures.length > 0) {
             //     // console.log(selectedFeatures)
@@ -1004,70 +1216,12 @@
             //         ]),
             //         default_table_color || '#3a95dc'
             //     ]);
-            if (selectedFeatures.length > 0) {
-                // Combine the bounds of all selected features asynchronously
-                const combineBoundsAsync = async () => {
-                    const combinedBounds = new mapboxgl.LngLatBounds();
-                    for (let i = 0; i < selectedFeatures.length; i++) {
-                        const feature = selectedFeatures[i];
-                        const coordinates = feature.geometry.coordinates[0][0];
-                        const featureBounds = coordinates.reduce((bounds, coord) => {
-                            return bounds.extend(coord);
-                        }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
-
-                        combinedBounds.extend(featureBounds);
-
-                        // Yield to the browser to avoid blocking the UI
-                        if (i % 10 === 0) await new Promise(resolve => setTimeout(resolve, 0));
-                    }
-                    return combinedBounds;
-                };
-
-                // Fit map to combined bounds
-                combineBoundsAsync().then(combinedBounds => {
-                    map.fitBounds(combinedBounds, { padding: 50 });
-                });
-
-                // Update paint property for selected features asynchronously
-                const updatePaintPropertyAsync = async () => {
-                    const paintProperty = [
-                        'case',
-                        ...selectedFeatures.flatMap(feature => [
-                            ['==', ['get', 'str_id'], feature.properties.str_id],
-                            '#ff0000'
-                        ]),
-                        default_table_color || '#3a95dc'
-                    ];
-
-                    map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintProperty);
-                };
-
-                updatePaintPropertyAsync();
-// }        
-            Filtered_Features = selectedFeatures
-            if (selectedFeatures.length === 1){
-                selectedFeatures.forEach(feature => {
-                    const coordinates = feature.geometry.coordinates[0][0];
-                    const bounds = coordinates.reduce((bounds, coord) => {
-                        return bounds.extend(coord);
-                    }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
-
-                    const properties = feature.properties;
-                    new mapboxgl.Popup()
-                        .setLngLat(bounds.getCenter())
-                        // .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID:</strong> ${properties.node_id}`)
-                        .setHTML(popup_design_complete(properties))
-                        .addTo(map);
-                });
-            }
-            } else {
-                alert('No matching polygons found');
-            }
+            
         }
-        var dropdown_status = {'P':'', 'B':'','INV':'','SCB':'','STR':'','M':''}
+        var dropdown_status = {'P':'', 'B':'','INV':'','SCB':'','STR':'','M':'', 'Robo':''}
         document.getElementById('P-dropdown').addEventListener('change', (e) => {
             dropdown_status["P"] = e.target.value;
-            filterPolygons();
+            if (e.target.value != ''){ filterPolygons();}
         });
 
         document.getElementById('B-dropdown').addEventListener('change', (e) => {
@@ -1091,6 +1245,10 @@
         });
         document.getElementById('M-dropdown').addEventListener('change', (e) => {
             dropdown_status["M"] = e.target.value;
+            filterPolygons();
+        });
+        document.getElementById('Robo-dropdown').addEventListener('change', (e) => {
+            dropdown_status["Robo"] = e.target.value;
             filterPolygons();
         });
         
