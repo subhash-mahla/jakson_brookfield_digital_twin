@@ -750,14 +750,24 @@
                                 search_values.forEach(search_value => {
                                     const feature = features.find(f => {
                                         const nodeId = f.properties.node_id !== undefined ? String(f.properties.node_id).toLowerCase() : '';
+                                        const roboId = f.properties.robo_id !== undefined ? String(f.properties.robo_id).toLowerCase() : '';
+                                        const strId = f.properties.str_id !== undefined ? String(f.properties.str_id).toLowerCase() : '';
+                                        const rowcolId = f.properties.row_col !== undefined ? String(f.properties.row_col).toLowerCase() : '';
                                         // const strId = f.properties.str_id !== undefined ? String(f.properties.str_id).toLowerCase() : '';
                                         // const rowcolId = f.properties.row_col !== undefined ? String(f.properties.row_col).toLowerCase() : '';
                                         if (nodeId === search_value){
                                             search_attri = "nodeid";
-                                            searchSeleFeatures.push(f);
+                                            // searchSeleFeatures.push(f);
                                             // return true;
 
                                         }
+                                        if (roboId === search_value){
+                                            search_attri = "roboid";
+                                            // searchSeleFeatures.push(f);
+                                            // return true;
+
+                                        }
+                                        // console.log(search_value)
                                         // if (strId === searchValue){
                                         //     search_attri = "strid";
                                         //     return true;
@@ -766,7 +776,9 @@
                                         //     search_attri = "rcid";
                                         //     return true;
                                         // }
-                                        // return nodeId === searchValue || strId === searchValue || rowcolId === searchValue;
+                                        if(nodeId === search_value || strId === search_value || rowcolId === search_value || roboId === search_value){
+                                            searchSeleFeatures.push(f);
+                                        }
                                     });
                                     // searchSeleFeatures.push(feature);
                                     // console.log(search_value);
