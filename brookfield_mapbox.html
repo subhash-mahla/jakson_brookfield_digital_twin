@@ -194,6 +194,7 @@
         <select id="STR-dropdown">
             <option value="">STR</option>
         </select>
+        <br />
         <select id="M-dropdown">
             <option value="">M</option>
         </select>
@@ -740,6 +741,7 @@
 
             function perform_search (searchValue, features) {
                 if (searchValue) {
+                    change_status_text("Searching ...")
                     // fetch(table_geojson_url)
                     //     .then(response => response.json())
                     //     .then(data => {
@@ -753,8 +755,6 @@
                                         const roboId = f.properties.robo_id !== undefined ? String(f.properties.robo_id).toLowerCase() : '';
                                         const strId = f.properties.str_id !== undefined ? String(f.properties.str_id).toLowerCase() : '';
                                         const rowcolId = f.properties.row_col !== undefined ? String(f.properties.row_col).toLowerCase() : '';
-                                        // const strId = f.properties.str_id !== undefined ? String(f.properties.str_id).toLowerCase() : '';
-                                        // const rowcolId = f.properties.row_col !== undefined ? String(f.properties.row_col).toLowerCase() : '';
                                         if (nodeId === search_value){
                                             search_attri = "nodeid";
                                             // searchSeleFeatures.push(f);
@@ -785,6 +785,7 @@
                                     // console.log(feature);
                                 });
                                 // console.log(searchSeleFeatures)
+                                change_status_text('Search Done');
                                 highlight_features(searchSeleFeatures, true);
                                 } 
                             else {
@@ -816,6 +817,7 @@
                             console.log(`Searching for: ${searchValue}`);
                             // console.log(feature)
                             if (searchSeleFeatures.length){
+                                change_status_text('Search Done');
                                 highlight_features(searchSeleFeatures, true)
                             }
                             // if (feature) {
@@ -871,6 +873,7 @@
                             else {
                                 console.log('No matching polygon found');
                                 alert('No matching table found');
+                                change_status_text('No matching table/ID found')
                             }
                         // })
                         // .catch(err => {
@@ -1195,7 +1198,8 @@
                     });
                 }
                 } else {
-                    alert('No matching polygons found');
+                    alert('No matching Table found');
+                    change_status_text('No Matching')
                 }
             }
             else{
@@ -1232,34 +1236,41 @@
         }
         var dropdown_status = {'P':'', 'B':'','INV':'','SCB':'','STR':'','M':'', 'Robo':''}
         document.getElementById('P-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
             dropdown_status["P"] = e.target.value;
             if (e.target.value != ''){ filterPolygons();}
         });
 
         document.getElementById('B-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
             dropdown_status["B"] = e.target.value;
             filterPolygons();
         });
 
         document.getElementById('INV-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
             dropdown_status["INV"] = e.target.value;
             filterPolygons();
         });
 
         document.getElementById('SCB-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
             dropdown_status["SCB"] = e.target.value;
             filterPolygons();
         });
 
         document.getElementById('STR-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
             dropdown_status["STR"] = e.target.value;
             filterPolygons();
         });
         document.getElementById('M-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
             dropdown_status["M"] = e.target.value;
             filterPolygons();
         });
         document.getElementById('Robo-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
             dropdown_status["Robo"] = e.target.value;
             filterPolygons();
         });
