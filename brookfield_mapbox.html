@@ -11,6 +11,7 @@
     <!-- <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.js'></script> -->
     <!-- <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.css' type='text/css' /> -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 0px; width: 100%; }
@@ -121,14 +122,86 @@
             cursor: pointer;
             background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
         }
+        .round-option-button-info {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 230px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #02a1f7;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
+        }
+        #featureTableContainer {
+            display: none; /* Initially hidden */
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            z-index: 1000;
+            max-width: 80%; /* To constrain table width */
+            max-height: 80%; /* To constrain table height */
+        }
+
+        #closeButton {
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            float: right;
+            font-size: 16px;
+        }
+        #downloadButton {
+            background-color: rgb(8, 86, 1);
+        }
+
+        #showTableButton {
+            margin: 20px;
+            padding: 10px;
+            background-color: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #scrollableTableWrapper {
+            max-height: 500px; /* Set a fixed height for vertical scroll */
+            max-width: 100%; /* Set width for horizontal scroll */
+            overflow: auto; /* Enables both horizontal and vertical scrolling */
+            border: 1px solid #ccc;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+            white-space: nowrap; /* Prevent line wrapping for wide tables */
+        }
         .radio-buttons {
             display: none;
             position: absolute;
-            top: 100px; /* Adjust this value as needed */
+            top: 160px; /* Adjust this value as needed */
             right: 50px;
-            background-color: rgba(1, 163, 244, 0.957);
+            background-color: rgba(1, 163, 244, 0.325);
             border: 1px solid #02a1f7;
-            padding: 10px;
+            padding: 1px;
             border-radius: 5px;
         }
 
@@ -244,6 +317,9 @@
     <div class="round-option-button-highlight" id="highlight-opt" onclick="toggleRadioButtonsHighlight()">
         <i class="fa fa-bars" style="color: #071cff;"></i>
     </div>
+    <div class="round-option-button-info" id="info-opt" onclick="toggleRadioButtonsInfo()">
+        <i class="fa fa-info" style="color: #071cff;"></i>
+    </div>
     <div class="radio-buttons" id="radioButtons-label">
         <label><input type="radio" name="options" value="Option 0" onclick="logOptionLabel(this)"> Hide All</label>
         <label><input type="radio" name="options" value="Option 1" onclick="logOptionLabel(this)"> Show Node IDs</label>
@@ -253,6 +329,28 @@
     <div class="radio-buttons" id="radioButtons-highlight">
         <label><input type="radio" name="options" value="Option 1" onclick="logOptionHighlight(this)"> Highlight ICR</label>
         <label><input type="radio" name="options" value="Option 2" onclick="logOptionHighlight(this)"> Highlight Master</label>
+    </div>
+    <div class="radio-buttons" id="radioButtons-info">
+        <label><input type="radio" name="options" value="Option 1" onclick="logOptionInfo(this)"> Robo-Table Count</label>
+    </div>
+    <div id="featureTableContainer">
+        <button id="tableDownloadButton">Download XLSX</button>
+        <button id="tableCloseButton">×</button>
+        
+        <!-- Scrollable wrapper for the table -->
+        <div id="scrollableTableWrapper">
+            <table id="featureTable">
+                <thead>
+                    <tr>
+                        <th>Robo ID</th>
+                        <!-- Dynamic columns for B-INV combination -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dynamic rows for robo_id and B-INV count -->
+                </tbody>
+            </table>
+        </div>
     </div>
     <script>
         const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V14.geojson';
@@ -348,6 +446,7 @@
         const default_table_color = '#3a95dc'
         const default_icr_color = '#3a95dc'
         var Filtered_Features = ''
+        var CurrentSeleFeatures = ''
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/subhash54/clxrgo01v00oh01qw33lcc44s', // replace with your Mapbox style URL
@@ -512,7 +611,7 @@
             map.on('click', 'shapefile-layer_tables', (e) => {
                 const coordinates = e.lngLat;
                 const properties = e.features[0].properties;
-                change_status_text(`Selected Tables: 1`)
+                change_status_text(`Selected Tables: 1 (Str: 1)`)
                 new mapboxgl.Popup()
                     .setLngLat(coordinates)
                     // .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
@@ -649,7 +748,9 @@
                 return `<strong>P: </strong> ${properties.phase}<strong>  Row-Col: </strong> ${properties.row_col}<br /><strong>Str: </strong> ${properties.str_id}<br /><strong>Node: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}<br /><strong>Robo ID: </strong> ${properties.robo_id}<br />`
                 // return `<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`
             }
+            
             function highlight_features (selectedFeatures, showPopups){
+                CurrentSeleFeatures = selectedFeatures
                 const popups = document.getElementsByClassName("mapboxgl-popup");
                 if (popups.length) {
                     for (let i = 0; i < popups.length; i++) {
@@ -666,7 +767,7 @@
                     
                 }
                 if (selectedFeatures.length > 0) {
-                    change_status_text(`Selected Tables: ${selectedFeatures.length}`)
+                    change_status_text(`Selected Tables: ${selectedFeatures.length} (Str: ${countUniqueStrIds(selectedFeatures)})`)
                 // Combine the bounds of all selected features asynchronously
                 const combineBoundsAsync = async () => {
                     const combinedBounds = new mapboxgl.LngLatBounds();
@@ -886,6 +987,18 @@
             };
         
         });
+        function countUniqueStrIds(searchSeleFeatures) {
+                const uniqueStrIds = new Set();
+                
+                // Loop through each feature in the searchSeleFeatures array
+                searchSeleFeatures.forEach(feature => {
+                    if (feature.properties.str_id) {
+                        uniqueStrIds.add(feature.properties.str_id); // Add the str_id to the Set
+                    }
+                });
+                // Return the size of the Set, which is the count of unique str_id values
+                return uniqueStrIds.size;
+        }
         function change_status_text(new_text){
             document.getElementById("status-label").textContent = new_text;
         }
@@ -893,11 +1006,19 @@
                 const radioButtonsLabel = document.getElementById('radioButtons-label');
                 radioButtonsLabel.style.display = radioButtonsLabel.style.display === 'block' ? 'none' : 'block';
                 document.getElementById('radioButtons-highlight').style.display = 'none'
+                document.getElementById('radioButtons-info').style.display = 'none'
             }
         function toggleRadioButtonsHighlight() {
                 const radioButtonsHighlight = document.getElementById('radioButtons-highlight');
                 radioButtonsHighlight.style.display = radioButtonsHighlight.style.display === 'block' ? 'none' : 'block';
                 document.getElementById('radioButtons-label').style.display = 'none'
+                document.getElementById('radioButtons-info').style.display = 'none'
+            }
+        function toggleRadioButtonsInfo() {
+                const radioButtonsInfo = document.getElementById('radioButtons-info');
+                radioButtonsInfo.style.display = radioButtonsInfo.style.display === 'block' ? 'none' : 'block';
+                document.getElementById('radioButtons-label').style.display = 'none'
+                document.getElementById('radioButtons-highlight').style.display = 'none'
             }
         function logOptionLabel(radio) {
             console.log('Selected option:', radio.value);
@@ -937,6 +1058,96 @@
                 }
                 
             }
+        function logOptionInfo(radio) {
+                console.log('Selected option:', radio.value);
+                if(radio.value === 'Option 1'){
+                    generateRoboCountTable(CurrentSeleFeatures); // Generate table with data
+                    document.getElementById('featureTableContainer').style.display = 'block';
+                }
+                // if(radio.value === 'Option 2'){
+                //     highlight_master();
+                // }
+                
+            }
+
+        function generateRoboCountTable(features) {
+            const table = document.getElementById('featureTable');
+            const thead = table.querySelector('thead tr');
+            const tbody = table.querySelector('tbody');
+
+            // Create a map to group the features by robo_id and B-INV combination
+            const featureMap = {};
+            const columnSet = new Set();
+
+            features.forEach(feature => {
+                const { robo_id, B, INV } = feature.properties;
+                const columnKey = `B${B}-I${INV}`;
+
+                // Add column to the set (to track unique B-INV combinations)
+                columnSet.add(columnKey);
+
+                // Initialize feature map for the robo_id if not already present
+                if (!featureMap[robo_id]) {
+                    featureMap[robo_id] = {};
+                }
+
+                // Initialize the count for the B-INV combination
+                if (!featureMap[robo_id][columnKey]) {
+                    featureMap[robo_id][columnKey] = 0;
+                }
+
+                // Increment the count for the B-INV combination
+                featureMap[robo_id][columnKey]++;
+            });
+
+            // Clear the table before adding new content
+            thead.innerHTML = '<th>Robo ID</th>';
+            tbody.innerHTML = '';
+
+            // Add dynamic columns for B-INV combinations
+            const columns = Array.from(columnSet);
+            columns.forEach(column => {
+                const th = document.createElement('th');
+                th.textContent = column;
+                thead.appendChild(th);
+            });
+
+            // Add rows for each robo_id
+            Object.keys(featureMap).forEach(robo_id => {
+                const tr = document.createElement('tr');
+                const tdRoboId = document.createElement('td');
+                tdRoboId.textContent = robo_id;
+                tr.appendChild(tdRoboId);
+
+                // Add counts for each B-INV combination
+                columns.forEach(column => {
+                    const td = document.createElement('td');
+                    td.textContent = featureMap[robo_id][column] || 0;
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+        }
+        // Show table button functionality
+        // document.getElementById('showTableButton').addEventListener('click', () => {
+        //     generateTable(searchSeleFeatures); // Generate table with data
+        //     document.getElementById('featureTableContainer').style.display = 'block'; // Show the table
+        // });
+
+        // Close button functionality
+        document.getElementById('tableCloseButton').addEventListener('click', () => {
+            document.getElementById('featureTableContainer').style.display = 'none'; // Hide the table
+        });
+        // Function to download table data as XLSX
+        function downloadTableAsExcel() {
+            const table = document.getElementById('featureTable');
+            const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+            XLSX.writeFile(wb, "Robo table count - B-INV.xlsx");
+        }
+
+        // Download button functionality
+        document.getElementById('tableDownloadButton').addEventListener('click', downloadTableAsExcel);
         // function highlight_icr() {
         //     const features = geoJsonData_tables.features;
         //     const paintExpression = ['case'];
@@ -1141,7 +1352,8 @@
                 }
 
                 if (selectedFeatures.length > 0) {
-                    change_status_text(`Selected Tables: ${selectedFeatures.length}`)
+                    // change_status_text(`Selected Tables: ${selectedFeatures.length}`)
+                    change_status_text(`Selected Tables: ${selectedFeatures.length} (Str: ${countUniqueStrIds(selectedFeatures)})`)
                     // Combine the bounds of all selected features asynchronously
                     const combineBoundsAsync = async () => {
                         const combinedBounds = new mapboxgl.LngLatBounds();
@@ -1182,6 +1394,7 @@
                     updatePaintPropertyAsync();
     // }        
                 Filtered_Features = selectedFeatures
+                CurrentSeleFeatures = selectedFeatures
                 if (selectedFeatures.length === 1){
                     selectedFeatures.forEach(feature => {
                         const coordinates = feature.geometry.coordinates[0][0];
