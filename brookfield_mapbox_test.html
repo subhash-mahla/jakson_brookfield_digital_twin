@@ -1083,6 +1083,65 @@
                 
             }
 
+        // function generateRoboCountTable(features) {
+        //     const table = document.getElementById('featureTable');
+        //     const thead = table.querySelector('thead tr');
+        //     const tbody = table.querySelector('tbody');
+
+        //     // Create a map to group the features by robo_id and B-INV combination
+        //     const featureMap = {};
+        //     const columnSet = new Set();
+
+        //     features.forEach(feature => {
+        //         const { robo_id, B, INV } = feature.properties;
+        //         const columnKey = `B${B}-I${INV}`;
+
+        //         // Add column to the set (to track unique B-INV combinations)
+        //         columnSet.add(columnKey);
+
+        //         // Initialize feature map for the robo_id if not already present
+        //         if (!featureMap[robo_id]) {
+        //             featureMap[robo_id] = {};
+        //         }
+
+        //         // Initialize the count for the B-INV combination
+        //         if (!featureMap[robo_id][columnKey]) {
+        //             featureMap[robo_id][columnKey] = 0;
+        //         }
+
+        //         // Increment the count for the B-INV combination
+        //         featureMap[robo_id][columnKey]++;
+        //     });
+
+        //     // Clear the table before adding new content
+        //     thead.innerHTML = '<th>Robo ID</th>';
+        //     tbody.innerHTML = '';
+
+        //     // Add dynamic columns for B-INV combinations
+        //     const columns = Array.from(columnSet);
+        //     columns.forEach(column => {
+        //         const th = document.createElement('th');
+        //         th.textContent = column;
+        //         thead.appendChild(th);
+        //     });
+
+        //     // Add rows for each robo_id
+        //     Object.keys(featureMap).forEach(robo_id => {
+        //         const tr = document.createElement('tr');
+        //         const tdRoboId = document.createElement('td');
+        //         tdRoboId.textContent = robo_id;
+        //         tr.appendChild(tdRoboId);
+
+        //         // Add counts for each B-INV combination
+        //         columns.forEach(column => {
+        //             const td = document.createElement('td');
+        //             td.textContent = featureMap[robo_id][column] || 0;
+        //             tr.appendChild(td);
+        //         });
+
+        //         tbody.appendChild(tr);
+        //     });
+        // }
         function generateRoboCountTable(features) {
             const table = document.getElementById('featureTable');
             const thead = table.querySelector('thead tr');
@@ -1113,20 +1172,42 @@
                 featureMap[robo_id][columnKey]++;
             });
 
+            // Helper function to sort B-INV headers
+            function sortHeaders(a, b) {
+                const [aB, aI] = a.match(/\d+/g).map(Number);  // Extract numbers from Bx-Iy
+                const [bB, bI] = b.match(/\d+/g).map(Number);
+                return aB - bB || aI - bI;  // Sort by B first, then by INV
+            }
+
+            // Helper function to sort robo_id (Auto1, Semi2, etc.)
+            function sortRoboId(a, b) {
+                const aPrefix = a.match(/[A-Za-z]+/)[0];  // Extract the prefix (Auto, Semi, etc.)
+                const bPrefix = b.match(/[A-Za-z]+/)[0];
+                const aNum = parseInt(a.match(/\d+/)[0]);  // Extract the numeric part
+                const bNum = parseInt(b.match(/\d+/)[0]);
+
+                // Sort first by prefix alphabetically, then by the numeric part
+                if (aPrefix === bPrefix) {
+                    return aNum - bNum;
+                } else {
+                    return aPrefix.localeCompare(bPrefix);
+                }
+            }
+
             // Clear the table before adding new content
             thead.innerHTML = '<th>Robo ID</th>';
             tbody.innerHTML = '';
 
-            // Add dynamic columns for B-INV combinations
-            const columns = Array.from(columnSet);
+            // Sort the columns (B-INV combinations) before adding to the table
+            const columns = Array.from(columnSet).sort(sortHeaders);
             columns.forEach(column => {
                 const th = document.createElement('th');
                 th.textContent = column;
                 thead.appendChild(th);
             });
 
-            // Add rows for each robo_id
-            Object.keys(featureMap).forEach(robo_id => {
+            // Sort the robo_ids and add rows to the table
+            Object.keys(featureMap).sort(sortRoboId).forEach(robo_id => {
                 const tr = document.createElement('tr');
                 const tdRoboId = document.createElement('td');
                 tdRoboId.textContent = robo_id;
@@ -1142,6 +1223,7 @@
                 tbody.appendChild(tr);
             });
         }
+
         // Show table button functionality
         // document.getElementById('showTableButton').addEventListener('click', () => {
         //     generateTable(searchSeleFeatures); // Generate table with data
@@ -1364,9 +1446,13 @@
                 if (Ms) {
                     selectedFeatures = selectedFeatures.filter(f => ''+f.properties.tkr_master === Ms);
                 }
-                if (Robos) {
-                    selectedFeatures = selectedFeatures.filter(f => ''+f.properties.robo_id === Robos);
+                // if (Robos) {
+                //     selectedFeatures = selectedFeatures.filter(f => ''+f.properties.robo_id === Robos);
+                // }
+                if (Robos && Array.isArray(Robos)) {
+                    selectedFeatures = selectedFeatures.filter(f => Robos.includes('' + f.properties.robo_id));
                 }
+
 
                 if (selectedFeatures.length > 0) {
                     // change_status_text(`Selected Tables: ${selectedFeatures.length}`)
@@ -1499,12 +1585,12 @@
             dropdown_status["M"] = e.target.value;
             filterPolygons();
         });
-        document.getElementById('Robo-dropdown').addEventListener('change', (e) => {
-            change_status_text('Filtering ...')
-            dropdown_status["Robo"] = e.target.value;
+        document.getElementById('Robo-dropdown').addEventListener('change', function() {
+            const selectedOptions = Array.from(this.selectedOptions);
+            dropdown_status["Robo"] = selectedOptions.map(option => option.value);
             filterPolygons();
         });
-        
+            
     </script>
 </body>
 </html>
