@@ -332,6 +332,7 @@
     </div>
     <div class="radio-buttons" id="radioButtons-info">
         <label><input type="radio" name="options" value="Option 1" onclick="logOptionInfo(this)"> Robo-Table Count</label>
+        <label><input type="radio" name="options" value="Option 2" onclick="logOptionInfo(this)"> Robo-Table Count F2</label>
     </div>
     <div id="featureTableContainer">
         <button id="tableDownloadButton">Download XLSX</button>
@@ -1077,6 +1078,10 @@
                     generateRoboCountTable(CurrentSeleFeatures); // Generate table with data
                     document.getElementById('featureTableContainer').style.display = 'block';
                 }
+                if(radio.value === 'Option 2'){
+                    generateRoboCountTable_format2(CurrentSeleFeatures); // Generate table with data
+                    document.getElementById('featureTableContainer').style.display = 'block';
+                }
                 // if(radio.value === 'Option 2'){
                 //     highlight_master();
                 // }
@@ -1223,6 +1228,67 @@
                 tbody.appendChild(tr);
             });
         }
+        function generateRoboCountTable_format2(features) {
+            const table = document.getElementById('featureTable');
+            const thead = table.querySelector('thead tr');
+            const tbody = table.querySelector('tbody');
+
+            // Create a map to group the features by robo_id, B, and INV combination
+            const featureMap = {};
+
+            features.forEach(feature => {
+                const { robo_id, B, INV, md_count } = feature.properties;
+                const key = `${robo_id}-${B}-${INV}`;
+
+                // Initialize feature map if not present
+                if (!featureMap[key]) {
+                    featureMap[key] = {
+                        robo_id: robo_id,
+                        B: B,
+                        INV: INV,
+                        count: 0,
+                        totalModules: 0
+                    };
+                }
+
+                // Increment the count and sum the md_count for "Total Module"
+                featureMap[key].count++;
+                featureMap[key].totalModules += md_count || 0;
+            });
+
+            // Clear the table before adding new content
+            thead.innerHTML = '<th>Robo ID</th><th>B</th><th>INV</th><th>Table Count</th><th>Total Module</th>';
+            tbody.innerHTML = '';
+
+            // Iterate over the featureMap and populate the table
+            Object.values(featureMap).forEach(rowData => {
+                const tr = document.createElement('tr');
+
+                // Create and append the cells
+                const tdRoboId = document.createElement('td');
+                tdRoboId.textContent = rowData.robo_id;
+                tr.appendChild(tdRoboId);
+
+                const tdB = document.createElement('td');
+                tdB.textContent = rowData.B;
+                tr.appendChild(tdB);
+
+                const tdINV = document.createElement('td');
+                tdINV.textContent = rowData.INV;
+                tr.appendChild(tdINV);
+
+                const tdCount = document.createElement('td');
+                tdCount.textContent = rowData.count;
+                tr.appendChild(tdCount);
+
+                const tdTotalModules = document.createElement('td');
+                tdTotalModules.textContent = rowData.totalModules;
+                tr.appendChild(tdTotalModules);
+
+                tbody.appendChild(tr);
+            });
+        }
+
 
         // Show table button functionality
         // document.getElementById('showTableButton').addEventListener('click', () => {
