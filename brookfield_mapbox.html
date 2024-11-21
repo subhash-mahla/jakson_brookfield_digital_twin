@@ -140,6 +140,24 @@
             cursor: pointer;
             background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
         }
+        .round-option-button-share {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 270px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #02a1f7;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
+        }
         #featureTableContainer {
             display: none; /* Initially hidden */
             position: fixed;
@@ -320,6 +338,9 @@
     <div class="round-option-button-info" id="info-opt" onclick="toggleRadioButtonsInfo()">
         <i class="fa fa-info" style="color: #071cff;"></i>
     </div>
+    <div class="round-option-button-share" id="share-opt" onclick="shareTextDetials()">
+        <i class="fa fa-share" style="color: #071cff;"></i>
+    </div>
     <div class="radio-buttons" id="radioButtons-label">
         <label><input type="radio" name="options" value="Option 0" onclick="logOptionLabel(this)"> Hide All</label>
         <label><input type="radio" name="options" value="Option 1" onclick="logOptionLabel(this)"> Show Node IDs</label>
@@ -355,9 +376,9 @@
         </div>
     </div>
     <script>
-        const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V14.geojson';
-        const icr_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs_V2.geojson';
-        const road_map_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_road_map_V2.geojson';
+        const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V15.geojson';
+        const icr_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs_V3.geojson';
+        const road_map_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_road_map_V3.geojson';
         mapboxgl.accessToken = 'pk.eyJ1Ijoic3ViaGFzaDU0IiwiYSI6ImNseGx1Y3JyMDAyMDcya3M2ZHpxdHFsN28ifQ.knRGnsgFrZMb-_gUb0dQdA';
         const icr_color_json = {
                         "ICR1": "#FF0000",
@@ -1527,7 +1548,42 @@
 
             map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintExpressionm);
         }
-        
+        function text_for_share(){
+            var sharing_text = 'Solar DTM'
+            if (CurrentSeleFeatures.length > 1) {
+                sharing_text = `Tables: ${CurrentSeleFeatures.length} (Str: ${countUniqueStrIds(CurrentSeleFeatures)}, MdCount: ${calculateModuleCount(CurrentSeleFeatures)})`
+            }
+            else{
+                if (CurrentSeleFeatures.length == 1){
+
+                }
+            }
+            return sharing_text
+        }
+        function shareTextDetials() {
+            var sharing_text = text_for_share()
+            
+            // Check for Web Share API support
+            if (navigator.share) {
+                navigator.share({
+                title: 'Solar DTM',
+                text: sharing_text
+                })
+                .then(() => console.log('Shared successfully'))
+                .catch(error => console.error('Error sharing:', error));
+            } else {
+                // Fallback to traditional method (e.g., copying to clipboard)
+                const tempLink = document.createElement('a');
+                tempLink.href = `data:text/plain;charset=utf-8,${encodeURIComponent(sharing_text)}`;
+                tempLink.download = 'share.txt';
+                tempLink.style.display = 'none';
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+                alert('Selected tables data copied to clipboard. Paste it into your desired app.');
+                }
+            }
+
         function populateDropdowns(data) {
             const PDropdown = document.getElementById('P-dropdown');
             const BDropdown = document.getElementById('B-dropdown');
