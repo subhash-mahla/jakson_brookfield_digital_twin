@@ -140,6 +140,24 @@
             cursor: pointer;
             background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
         }
+        .round-option-button-share {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 270px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #02a1f7;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
+        }
         #featureTableContainer {
             display: none; /* Initially hidden */
             position: fixed;
@@ -320,6 +338,9 @@
     <div class="round-option-button-info" id="info-opt" onclick="toggleRadioButtonsInfo()">
         <i class="fa fa-info" style="color: #071cff;"></i>
     </div>
+    <div class="round-option-button-share" id="share-opt" onclick="shareTextDetials()">
+        <i class="fa fa-share" style="color: #071cff;"></i>
+    </div>
     <div class="radio-buttons" id="radioButtons-label">
         <label><input type="radio" name="options" value="Option 0" onclick="logOptionLabel(this)"> Hide All</label>
         <label><input type="radio" name="options" value="Option 1" onclick="logOptionLabel(this)"> Show Node IDs</label>
@@ -333,6 +354,7 @@
     <div class="radio-buttons" id="radioButtons-info">
         <label><input type="radio" name="options" value="Option 1" onclick="logOptionInfo(this)"> Robo-Table Count</label>
         <label><input type="radio" name="options" value="Option 2" onclick="logOptionInfo(this)"> Robo-Table Count F2</label>
+        <label><input type="radio" name="options" value="Option 3" onclick="logOptionInfo(this)"> Robo-Table Count F3</label>
     </div>
     <div id="featureTableContainer">
         <button id="tableDownloadButton">Download XLSX</button>
@@ -355,8 +377,8 @@
     </div>
     <script>
         const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V14.geojson';
-        const icr_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs_V2.geojson';
-        const road_map_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_road_map_V2.geojson';
+        const icr_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs_V3.geojson';
+        const road_map_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_road_map_V3.geojson';
         mapboxgl.accessToken = 'pk.eyJ1Ijoic3ViaGFzaDU0IiwiYSI6ImNseGx1Y3JyMDAyMDcya3M2ZHpxdHFsN28ifQ.knRGnsgFrZMb-_gUb0dQdA';
         const icr_color_json = {
                         "ICR1": "#FF0000",
@@ -1082,6 +1104,10 @@
                     generateRoboCountTable_format2(CurrentSeleFeatures); // Generate table with data
                     document.getElementById('featureTableContainer').style.display = 'block';
                 }
+                if(radio.value === 'Option 3'){
+                    generateRoboCountTable_format3(CurrentSeleFeatures); // Generate table with data
+                    document.getElementById('featureTableContainer').style.display = 'block';
+                }
                 // if(radio.value === 'Option 2'){
                 //     highlight_master();
                 // }
@@ -1148,7 +1174,10 @@
         //     });
         // }
         function generateRoboCountTable(features) {
+            // clearAndGenerateRoboCountTable();
             const table = document.getElementById('featureTable');
+            // var table = document.getElementById('featureTable');
+
             const thead = table.querySelector('thead tr');
             const tbody = table.querySelector('tbody');
 
@@ -1230,6 +1259,11 @@
         }
         function generateRoboCountTable_format2(features) {
             const table = document.getElementById('featureTable');
+            // var table = document.getElementById('featureTable');
+            // clearAndGenerateRoboCountTable();
+            // if(table){
+            //     table.innerHTML = '';
+            // }
             const thead = table.querySelector('thead tr');
             const tbody = table.querySelector('tbody');
 
@@ -1260,8 +1294,34 @@
             thead.innerHTML = '<th>Robo ID</th><th>B</th><th>INV</th><th>Table Count</th><th>Total Module</th>';
             tbody.innerHTML = '';
 
-            // Iterate over the featureMap and populate the table
-            Object.values(featureMap).forEach(rowData => {
+            // Helper function to sort robo_id
+            function sortRoboId(a, b) {
+                const aPrefix = a.match(/[A-Za-z]+/)[0];  // Extract the prefix (e.g., "Auto", "Semi")
+                const bPrefix = b.match(/[A-Za-z]+/)[0];
+                const aNum = parseInt(a.match(/\d+/)[0]);  // Extract the numeric part (e.g., 1, 2)
+                const bNum = parseInt(b.match(/\d+/)[0]);
+
+                // Sort by prefix first, then by the numeric part
+                if (aPrefix === bPrefix) {
+                    return aNum - bNum;
+                } else {
+                    return aPrefix.localeCompare(bPrefix);
+                }
+            }
+
+            // Sort the data by robo_id, B, and INV
+            const sortedData = Object.values(featureMap).sort((a, b) => {
+                const roboComparison = sortRoboId(a.robo_id, b.robo_id);
+                if (roboComparison !== 0) return roboComparison;
+
+                const BComparison = a.B - b.B;
+                if (BComparison !== 0) return BComparison;
+
+                return a.INV - b.INV;  // If both robo_id and B are the same, compare by INV
+            });
+
+            // Iterate over the sorted data and populate the table
+            sortedData.forEach(rowData => {
                 const tr = document.createElement('tr');
 
                 // Create and append the cells
@@ -1269,6 +1329,123 @@
                 tdRoboId.textContent = rowData.robo_id;
                 tr.appendChild(tdRoboId);
 
+                const tdB = document.createElement('td');
+                tdB.textContent = rowData.B;
+                tr.appendChild(tdB);
+
+                const tdINV = document.createElement('td');
+                tdINV.textContent = rowData.INV;
+                tr.appendChild(tdINV);
+
+                const tdCount = document.createElement('td');
+                tdCount.textContent = rowData.count;
+                tr.appendChild(tdCount);
+
+                const tdTotalModules = document.createElement('td');
+                tdTotalModules.textContent = rowData.totalModules;
+                tr.appendChild(tdTotalModules);
+
+                tbody.appendChild(tr);
+            });
+        }
+        function clearAndGenerateRoboCountTable() {
+            const table = document.getElementById('featureTable');
+            
+            // Check if the table exists
+            if (!table) {
+                console.error('Table with id "featureTable" not found.');
+                return;  // Stop execution if the table doesn't exist
+            }
+
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+
+            // Check if thead and tbody exist, if not, create them
+            if (!thead) {
+                console.error('Table header (thead) not found, creating one.');
+                table.appendChild(document.createElement('thead'));  // Create a new <thead>
+            }
+            if (!tbody) {
+                console.error('Table body (tbody) not found, creating one.');
+                table.appendChild(document.createElement('tbody'));  // Create a new <tbody>
+            }
+
+            // Clear the table if it has any existing data
+            table.querySelector('thead').innerHTML = '';  // Clear table headers
+            table.querySelector('tbody').innerHTML = '';  // Clear table body
+        }
+        function generateRoboCountTable_format3(features) {
+            var table = document.getElementById('featureTable');
+            // clearAndGenerateRoboCountTable();
+            // if(table){
+            //     table.innerHTML = '';
+            // }
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+
+            // Clear the table before adding new content
+            thead.innerHTML = '';
+            tbody.innerHTML = '';
+
+            // // Add the first row with the title and generation time
+            // const titleRow = document.createElement('tr');
+            // const titleCell = document.createElement('th');
+            // titleCell.colSpan = 4;  // Span across 4 columns
+            // titleCell.textContent = 'Robo-Table Count F3';
+            // titleCell.style.textAlign = 'center';  // Center the title
+            // titleRow.appendChild(titleCell);
+            // thead.appendChild(titleRow);
+
+            // // Add the second row with the generation time
+            // const timestampRow = document.createElement('tr');
+            // const timestampCell = document.createElement('th');
+            // const now = new Date();
+            // timestampCell.colSpan = 4;  // Span across 4 columns
+            // timestampCell.textContent = `Generated on: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+            // timestampCell.style.textAlign = 'center';  // Center the timestamp
+            // timestampRow.appendChild(timestampCell);
+            // thead.appendChild(timestampRow);
+
+            // Add the header row for the table columns
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = '<th>B</th><th>INV</th><th>Table Count</th><th>Total Module</th>';
+            thead.appendChild(headerRow);
+
+            // Create a map to group the features by B and INV combination
+            const featureMap = {};
+
+            features.forEach(feature => {
+                const { B, INV, md_count } = feature.properties;
+                const key = `${B}-${INV}`;
+
+                // Initialize feature map if not present
+                if (!featureMap[key]) {
+                    featureMap[key] = {
+                        B: B,
+                        INV: INV,
+                        count: 0,
+                        totalModules: 0
+                    };
+                }
+
+                // Increment the count and sum the md_count for "Total Module"
+                featureMap[key].count++;
+                featureMap[key].totalModules += md_count || 0;
+            });
+
+            // Sort the data by B and then by INV
+            const sortedData = Object.values(featureMap).sort((a, b) => {
+                const BComparison = a.B - b.B;
+                if (BComparison !== 0) return BComparison;
+
+                return a.INV - b.INV;  // If B values are the same, sort by INV
+            });
+
+            // Iterate over the sorted data and populate the table
+            sortedData.forEach(rowData => {
+                const tr = document.createElement('tr');
+
+                // Create and append the cells
                 const tdB = document.createElement('td');
                 tdB.textContent = rowData.B;
                 tr.appendChild(tdB);
@@ -1371,7 +1548,42 @@
 
             map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintExpressionm);
         }
-        
+        function text_for_share(){
+            var sharing_text = 'Solar DTM'
+            if (CurrentSeleFeatures.length > 1) {
+                sharing_text = `Tables: ${CurrentSeleFeatures.length} (Str: ${countUniqueStrIds(CurrentSeleFeatures)}, MdCount: ${calculateModuleCount(CurrentSeleFeatures)})`
+            }
+            else{
+                if (CurrentSeleFeatures.length == 1){
+
+                }
+            }
+            return sharing_text
+        }
+        function shareTextDetials() {
+            var sharing_text = text_for_share()
+            
+            // Check for Web Share API support
+            if (navigator.share) {
+                navigator.share({
+                title: 'Solar DTM',
+                text: sharing_text
+                })
+                .then(() => console.log('Shared successfully'))
+                .catch(error => console.error('Error sharing:', error));
+            } else {
+                // Fallback to traditional method (e.g., copying to clipboard)
+                const tempLink = document.createElement('a');
+                tempLink.href = `data:text/plain;charset=utf-8,${encodeURIComponent(sharing_text)}`;
+                tempLink.download = 'share.txt';
+                tempLink.style.display = 'none';
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+                alert('Selected tables data copied to clipboard. Paste it into your desired app.');
+                }
+            }
+
         function populateDropdowns(data) {
             const PDropdown = document.getElementById('P-dropdown');
             const BDropdown = document.getElementById('B-dropdown');
