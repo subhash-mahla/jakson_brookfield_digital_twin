@@ -820,7 +820,7 @@
                     const paintProperty = [
                         'case',
                         ...selectedFeatures.flatMap(feature => [
-                            ['==', ['get', 'str_id'], feature.properties.str_id],
+                            ['==', ['get', 'eq_id'], feature.properties.eq_id],
                             '#ff0000'
                         ]),
                         default_table_color || '#3a95dc'
@@ -1763,7 +1763,7 @@
                         const paintProperty = [
                             'case',
                             ...selectedFeatures.flatMap(feature => [
-                                ['==', ['get', 'str_id'], feature.properties.str_id],
+                                ['==', ['get', 'eq_id'], feature.properties.eq_id],
                                 '#ff0000'
                             ]),
                             default_table_color || '#3a95dc'
