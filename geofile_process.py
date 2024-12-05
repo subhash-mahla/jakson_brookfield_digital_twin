@@ -78,11 +78,14 @@ def create_subdivided_polygons(input_shapefile, row_count, column_count):
         # Get the geometry of the feature
         geometry = row['geometry']
         md_counter = 1
-        
+        # print(geometry.geom_type)
         # Check the type of geometry
         if geometry.geom_type == 'Polygon':
             # Subdivide the polygon
             subdivide_polygon(geometry, row_count, column_count)
+        # elif geometry.geom_type == 'Line':
+        #     # Subdivide the polygon
+        #     subdivide_polygon(geometry, row_count, column_count)
         elif geometry.geom_type == 'MultiPolygon':
             # Iterate over each polygon in the MultiPolygon
             for poly in geometry:
@@ -113,17 +116,7 @@ def create_subdivided_polygons(input_shapefile, row_count, column_count):
 
 
 
-def assign_column_counts_to_polygons(shp_file_path, min_distance):
-    """
-    Assign column counts to every polygon in the shapefile based on the x-axis and a minimum distance.
-    
-    Parameters:
-    shp_file_path (str): The path to the shapefile.
-    min_distance (float): The minimum distance between two columns.
-    
-    Returns:
-    str: The path to the modified shapefile.
-    """
+def assign_column_counts_to_polygons(shp_file_path, min_distance, start_col):
     # Read the shapefile
     gdf = gpd.read_file(shp_file_path)
     
@@ -132,8 +125,8 @@ def assign_column_counts_to_polygons(shp_file_path, min_distance):
     gdf = gdf.sort_values(by='centroid_x').reset_index(drop=True)
     
     # Initialize the first column
-    gdf['col'] = 1
-    current_col = 1
+    gdf['col'] = start_col
+    current_col = start_col
     previous_x = gdf.loc[0, 'centroid_x']
     
     # Assign column numbers based on the minimum distance
@@ -153,12 +146,43 @@ def assign_column_counts_to_polygons(shp_file_path, min_distance):
     print(f'Total col {current_col}')
     return output_file_path
 
+import json
+import pandas as pd
+
+def update_geojson_with_node_id_and_tkr_master(geojson_file, excel_file, output_file):
+    # Read the GeoJSON file
+    with open(geojson_file, 'r') as f:
+        geojson_data = json.load(f)
+    
+    # Read the Excel file into a DataFrame
+    df = pd.read_excel(excel_file)
+    
+    # Create a dictionary for quick lookups
+    eqid_to_data = df.set_index('eq_id').to_dict(orient='index')
+    
+    # Update the GeoJSON features
+    for feature in geojson_data['features']:
+        eq_id = feature['properties'].get('eq_id')
+        if eq_id in eqid_to_data:
+            feature['properties']['node_id'] = eqid_to_data[eq_id].get('node_id', '-')
+            feature['properties']['tkr_master'] = eqid_to_data[eq_id].get('tkr_master', '-')
+        else:
+            feature['properties']['node_id'] = '-'
+            feature['properties']['tkr_master'] = '-'
+    
+    # Write the updated GeoJSON to the output file
+    with open(output_file, 'w') as f:
+        json.dump(geojson_data, f, indent=2)
+    print('node and master data marged in geojson')
+# Example usage
+# update_geojson_with_node_id('polygons.geojson', 'mapping.xlsx', 'updated_polygons.geojson')
 
 
 
 
 wnd_layout = [[sg.Button('Point to Str', key='-POINT_TO_STR-', enable_events=True, size=20), sg.Button('Str to Md', key = '-STR_TO_MD-', enable_events=True, size=20)],
-              [sg.Button('Assign IDs', key='-ASSIG_IDS-', enable_events=True, size=20), sg.Button('Assign col', key='-ASSIG_COLS-', enable_events=True, size=20)]]
+              [sg.Button('Assign IDs', key='-ASSIG_IDS-', enable_events=True, size=20), sg.Button('Assign col', key='-ASSIG_COLS-', enable_events=True, size=20)],
+[sg.Button('Murge Node IDS', key='-NODE_IDS-', enable_events=True, size=20), sg.Button('Gen uid', key='GEN_UID', enable_events=True, size=20)]]
 
 Main_Wnd = sg.Window("Digital Twin Mapping", layout=wnd_layout)
 
@@ -172,8 +196,8 @@ while True:
     if event == '-POINT_TO_STR-':
         input_shapefile = sg.popup_get_file('Select point shape file')
         if input_shapefile != "" or input_shapefile != None:
-            dimensions = (0.1, 0.1)  # Specify dimensions for the polygons (width, height)
-            rotation_angle = 45  # Specify rotation angle in degrees
+            dimensions = (4, 2)  # Specify dimensions for the polygons (width, height)
+            rotation_angle = 0  # Specify rotation angle in degrees
             output_shapefile = create_polygons_from_points(input_shapefile, dimensions, rotation_angle)
             print("Polygons created and saved to:", output_shapefile)
 
@@ -193,9 +217,16 @@ while True:
         shp_file_path = sg.popup_get_file('Select poly file to assign column')
         start_col = 1
         min_distance = 0.00001  # Adjust this value as needed
-        output_file_path = assign_column_counts_to_polygons(shp_file_path, min_distance=min_distance)
+        output_file_path = assign_column_counts_to_polygons(shp_file_path, min_distance=min_distance, start_col=start_col)
         print(f"Modified shapefile saved to: {output_file_path}")
 
-
+    if event == '-NODE_IDS-':
+        geojson_path = sg.popup_get_file('Select geojson')
+        node_xl_path = sg.popup_get_file('Select node xl')
+        update_geojson_with_node_id_and_tkr_master(geojson_path, node_xl_path, geojson_path.replace('.geojson', '_with_node_ids.geojson'))
+    if event == 'GEN_UID':
+        gen_id_count = 2
+        for i in range(gen_id_count):
+            print(id_genrator.generate_unique_id())
 
 

@@ -4,10 +4,7 @@ import pyperclip
 import pandas as pd
 import math
 
-
-def fetch_node_in_robo(in_json_data):
-    # print(f'in features : {len(in_json_data)}')
-    def get_prop_value(features, row, col, prop_name, phase = 1):
+def get_prop_value(features, row, col, prop_name, phase = 1):
         # phase_features = [f for f in features if (str(f['properties']['phase']) == str(phase))]
         # print(f'p features : {len(phase_features)}')
         # col_features = [f for f in phase_features if (str(f['properties']['col']) == str(col))]
@@ -20,6 +17,9 @@ def fetch_node_in_robo(in_json_data):
             return None
         else: 
             return matching_feature[0]['properties'][prop_name]
+def fetch_node_in_robo(in_json_data):
+    # print(f'in features : {len(in_json_data)}')
+    
         
         # # Sort by column
         # matching_features.sort(key=lambda f: int(f['properties']['col']))
@@ -62,18 +62,82 @@ def fetch_node_in_robo(in_json_data):
                                 node_data += f'M{m}-{node},'
                                 table_count += 1
                             else: 
-                                print(f"error - R{row_index}-C{col}-ROBO{r[1]['robo_row']}")
-                                error_data += f"error - R{row_index}-C{col}-ROBO{r[1]['robo_row']}, "
-                        new_row = [r[1]['robo_row'], r[1]['B'], r[1]['robo_type'], col, start_row, end_row, table_count, error_data, node_data]
+                                print(f"error - R{row_index}-C{col}-ROBO{r[1]['robo_id']}")
+                                error_data += f"error - R{row_index}-C{col}-ROBO{r[1]['robo_id']}, "
+                        new_row = [r[1]['robo_id'], r[1]['B'], r[1]['robo_type'], col, start_row, end_row, table_count, error_data, node_data]
                     else: 
-                        new_row = [r[1]['robo_row'], r[1]['B'], r[1]['robo_type'], '', '', '', '', '', '']
+                        new_row = [r[1]['robo_id'], r[1]['B'], r[1]['robo_type'], '', '', '', '', '', '']
                     final_robo_data.loc[len(final_robo_data)] = new_row
                 final_robo_data.to_excel(filepath.replace('.xlsx', '_out.xlsx'), index=False)
                 print("out file genrated")
         if event == 'START':
             pass
+def add_update_robo_data(geojson_data, xlsx_path, output_geojson_path):
+    # Load the GeoJSON data
+    # with open(geojson_path, 'r') as f:
+    #     geojson_data = json.load(f)
+    
+    # Load the Excel data
+    df = pd.read_excel(xlsx_path)
+    
+    # Iterate over each row in the Excel file
+    for _, row in df.iterrows():
+        # row_value = row['row']
+        col_value = int(row['col'])
+        start_row = row['start_row']
+        end_row = row['end_row']
+        robo_id = row['robo_id']
+        # node_id_value = row['node_id']
+        
+        for row_value in range(int(start_row), int(end_row+1), 1):
+            # Find matching feature in the GeoJSON
+            feature_matched = False
+            for feature in geojson_data['features']:
+                feature_row = feature['properties'].get('row')
+                feature_col = feature['properties'].get('col')
+                feature_phase = feature['properties'].get('phase')
+                
+                if int(feature_row) == row_value and int(feature_col) == col_value and feature_phase == 1:
+                    # Add or update the 'node_id' property
+                    feature['properties']['robo_id'] = robo_id
+                    feature_matched = True
+            if not feature_matched: print(f"error - R{row_value}-C{col_value}-ROBO{robo_id}")
+    # Save the updated GeoJSON
+    with open(output_geojson_path, 'w') as f:
+        json.dump(geojson_data, f, indent=4)
+
+    print(f"GeoJSON has been updated and saved to {output_geojson_path}")
 
 
+
+def add_update_property(geojson_data, xlsx_path, output_geojson_path):
+    # Load the GeoJSON data
+    # with open(geojson_path, 'r') as f:
+    #     geojson_data = json.load(f)
+    
+    # Load the Excel data
+    df = pd.read_excel(xlsx_path)
+    
+    # Iterate over each row in the Excel file
+    for _, row in df.iterrows():
+        row_value = row['row']
+        col_value = row['col']
+        node_id_value = row['node_id']
+        
+        # Find matching feature in the GeoJSON
+        for feature in geojson_data['features']:
+            feature_row = feature['properties'].get('row')
+            feature_col = feature['properties'].get('col')
+            
+            if feature_row == row_value and feature_col == col_value:
+                # Add or update the 'node_id' property
+                feature['properties']['node_id'] = node_id_value
+    
+    # Save the updated GeoJSON
+    with open(output_geojson_path, 'w') as f:
+        json.dump(geojson_data, f, indent=4)
+
+    print(f"GeoJSON has been updated and saved to {output_geojson_path}")
 
 
 
@@ -102,7 +166,7 @@ def main():
     sg.theme('LightBlue')
 
     layout = [
-        [sg.Button('Load GeoJSON', key='-LOAD-'), sg.Button('Node-Robo data Marge', key= 'ROBO', disabled=True)],
+        [sg.Button('Load GeoJSON', key='-LOAD-'), sg.Button('Node-Robo data Marge', key= 'ROBO', disabled=True), sg.Button('Robo data Marge in geojson', key= 'ROBO-GJ', disabled=True)],
         [sg.Text('Enter Row:'), sg.InputText(key='-ROW-', s=10), sg.Text('Enter Phase:'), sg.InputText(key='-PHASE-', s=10), sg.Button('Submit Row', key='-SUBMIT-')],
         [sg.Text('Total Tkr:', size=(10, 1)), sg.Text('', key='-T_COL-'), sg.Text('Current Tkr:', size=(10, 1)), sg.Text('', key='-C_COL-'), sg.Text('Remaining Tkr:', size=(10, 1)), sg.Text('', key='-R_COL-')],
         [sg.Text('Node ID:', size=(10, 1)), sg.Text('', key='-NODE_ID-')],
@@ -122,14 +186,15 @@ def main():
             break
 
         if event == '-LOAD-':
-            # filepath = sg.popup_get_file('Select GeoJSON File', file_types=(("GeoJSON Files", "*.geojson"),), no_window=True)
-            filepath = 'C:\\Users\\solar\\Documents\\GitHub\\jakson_brookfield_digital_twin\\brookfield_final_layout_P1_V13.geojson'
+            filepath = sg.popup_get_file('Select GeoJSON File', file_types=(("GeoJSON Files", "*.geojson"),), no_window=True)
+            # filepath = 'C:\\Users\\solar\\Documents\\GitHub\\jakson_brookfield_digital_twin\\brookfield_final_layout_P1_V13.geojson'
             if filepath:
                 geojson_data = load_geojson(filepath)
                 features = geojson_data.get('features', [])
                 col_index = 0
                 window['-NEXT-'].update(disabled=True)
                 window['ROBO'].update(disabled=False)
+                window['ROBO-GJ'].update(disabled=False)
                 # sg.popup('GeoJSON file loaded successfully!')
 
         if event == '-SUBMIT-':
@@ -211,6 +276,10 @@ def main():
                 window['-PREV-'].update(disabled=True)
         if event == 'ROBO':
             fetch_node_in_robo(geojson_data)
+        if event == 'ROBO-GJ':
+            xl_filepath = sg.popup_get_file('Select Robo XLSX File', file_types=(("XLSX Files", "*.xlsx"),), no_window=True)
+            out_geojson_path = filepath.replace('.geojson', '_updated.geojson')
+            add_update_robo_data(geojson_data=geojson_data, xlsx_path=xl_filepath, output_geojson_path=out_geojson_path)
     window.close()
 
 if __name__ == "__main__":

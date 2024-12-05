@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Page</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEm7AMBqCgO2SPdQpoLsKECLO2aKzZJXA",
+            authDomain: "digital-twin-mapping.firebaseapp.com",
+            databaseURL: "https://digital-twin-mapping-default-rtdb.firebaseio.com",
+            projectId: "digital-twin-mapping",
+            storageBucket: "digital-twin-mapping.appspot.com",
+            messagingSenderId: "298546323045",
+            appId: "1:298546323045:web:c127090cf056a33532308c",
+            measurementId: "G-G1ZVSDZB0N"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Function to handle login
+        function login() {
+            var email = document.getElementById('email').value;
+            var password = document.getElementById('password').value;
+
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Redirect to next page
+                    window.location.href = "brookfield_mapbox.html";
+                })
+                .catch((error) => {
+                    var errorCode = error.code;
+                    var errorMessage = error.message;
+                    alert("Error: " + errorMessage);
+                });
+        }
+    </script>
+</head>
+<body>
+    <h2>Login Page</h2>
+    <form onsubmit="login(); return false;">
+        <label for="email">Email:</label>
+        <input type="email" id="email" required><br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" required><br><br>
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>

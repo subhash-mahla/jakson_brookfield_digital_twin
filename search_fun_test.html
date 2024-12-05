@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search with Suggestions</title>
+    <style>
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .suggestions li {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .suggestions li.active {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <input type="text" class="search-input" id="search-input" placeholder="Search">
+        <ul class="suggestions" id="suggestions"></ul>
+    </div>
+    
+    <script>
+        const searchInput = document.getElementById('search-input');
+        const suggestionsList = document.getElementById('suggestions');
+
+        // Your input data (replace with your actual data)
+        const data = ['apple', 'banana', 'orange', 'mango', 'grapefruit', 'strawberry', 'blueberry', 'watermelon'];
+
+        // Function to show suggestions
+        function showSuggestions(value) {
+        const filteredData = data.filter(item => item.toLowerCase().startsWith(value.toLowerCase()));
+        suggestionsList.innerHTML = '';
+
+        if (filteredData.length > 0) {
+            suggestionsList.style.display = 'block';
+            for (let i = 0; i < Math.min(filteredData.length, 5); i++) { // Limit to top 5 suggestions
+            const suggestionItem = document.createElement('li');
+            suggestionItem.innerText = filteredData[i];
+            suggestionItem.addEventListener('click', () => {
+                searchInput.value = suggestionItem.innerText;
+                searchInput.focus(); // Set focus back to input after selection
+                performSearch(suggestionItem.innerText); // Call your search function
+                suggestionsList.style.display = 'none'; // Hide suggestions after selection
+            });
+            suggestionsList.appendChild(suggestionItem);
+            }
+        } else {
+            suggestionsList.style.display = 'none';
+        }
+        }
+
+        // Function to perform search (replace with your actual search logic)
+        function performSearch(searchTerm) {
+        console.log(`Search term: ${searchTerm}`);
+        // Implement your search logic here using the searchTerm
+        }
+
+        searchInput.addEventListener('keyup', () => {
+        const searchValue = searchInput.value;
+        showSuggestions(searchValue);
+        });
+
+        // Handle click outside search container to hide suggestions (optional)
+        document.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!target.closest('.search-container')) {
+            suggestionsList.style.display = 'none';
+        }
+        });
+
+    </script>
+</body>
+</html>
