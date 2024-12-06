@@ -1,0 +1,1875 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Jakson - Brookfield Digital Twin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.js'></script>
+    <!-- <script src='https://api.mapbox.com/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.js'></script> -->
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css' rel='stylesheet' />
+    <!-- <link href='https://api.mapbox.com/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.css' rel='stylesheet' /> -->
+    <!-- <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.js'></script> -->
+    <!-- <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.css' type='text/css' /> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; bottom: 0px; width: 100%; }
+        .search-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1;
+            /* background: rgba(1, 163, 244, 0.436); */
+            background-image: linear-gradient(180deg, rgba(0, 149, 255, 0.6), rgba(13, 255, 0, 0.6));
+            padding: 3px;
+            border-radius: 3px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        }
+        
+        .dropdown-container {
+            margin-bottom: 2px;
+        }
+        
+        /* .location-icon {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            z-index: 1;
+            border: 2px solid rgb(1, 163, 244);
+            background: rgba(1, 163, 244, 0.436);
+            padding: 5px;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        } */
+        .round-reload-button {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 70px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #f70202;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(244, 1, 1, 0.436); /* Semi-transparent */
+        }
+        .location-icon-button {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 110px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #02a1f7;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
+        }
+        .round-marker {
+            width: 10px;
+            height: 10px;
+            background-color: blue;
+            border: 2px solid white;
+            border-radius: 50%;
+        }
+        .round-option-button-label {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 150px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #02a1f7;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
+        }
+        .round-option-button-highlight {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 190px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #02a1f7;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
+        }
+        .round-option-button-info {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 230px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #02a1f7;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
+        }
+        .round-option-button-share {
+            position: absolute;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            top: 270px;
+            right: 10px;
+            border-radius: 50%;
+            border: 2px solid #02a1f7;
+            /* border: 2px solid #C0C0C0;
+            border: 2px solid #00ffae; */
+            text-align: center;
+            line-height: 30px;
+            font-size: 24px;
+            text-emphasis-color: #02a1f7;
+            cursor: pointer;
+            background-color: rgba(1, 163, 244, 0.436); /* Semi-transparent */
+        }
+        #featureTableContainer {
+            display: none; /* Initially hidden */
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: white;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            z-index: 1000;
+            max-width: 80%; /* To constrain table width */
+            max-height: 80%; /* To constrain table height */
+        }
+
+        #closeButton {
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            float: right;
+            font-size: 16px;
+        }
+        #downloadButton {
+            background-color: rgb(8, 86, 1);
+        }
+
+        #showTableButton {
+            margin: 20px;
+            padding: 10px;
+            background-color: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #scrollableTableWrapper {
+            max-height: 500px; /* Set a fixed height for vertical scroll */
+            max-width: 100%; /* Set width for horizontal scroll */
+            overflow: auto; /* Enables both horizontal and vertical scrolling */
+            border: 1px solid #ccc;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+            white-space: nowrap; /* Prevent line wrapping for wide tables */
+        }
+        .radio-buttons {
+            display: none;
+            position: absolute;
+            top: 160px; /* Adjust this value as needed */
+            right: 50px;
+            background-color: rgba(1, 163, 244, 0.325);
+            border: 1px solid #02a1f7;
+            padding: 1px;
+            border-radius: 5px;
+        }
+
+        .radio-buttons label {
+            display: block;
+            margin: 5px 0;
+        }
+        .map-label-sm {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.305);
+            padding: 2px 5px;
+            font-weight: bold;
+            /* font-size: 20px; */
+            /* font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; */
+            border-radius: 10px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.406);
+            z-index: 1000;
+        }
+        .map-label-status {
+            position: absolute;
+            /* top: 10px;
+            left: 10px; */
+            /* background-color: rgba(255, 255, 255, 0.305); */
+            /* padding: 2px 5px; */
+            color: #c00000;
+            font-weight: bold;
+            font-size: 15px;
+            font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            /* border-radius: 10px; */
+            /* box-shadow: 0 0 5px rgba(0, 0, 0, 0.406); */
+            /* z-index: 1000; */
+            text-shadow: 1px 1px 1px #c5df03;
+        }
+            
+         
+    </style>
+</head>
+<body>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css" type="text/css">
+    <div id="map"></div>
+    <div class="search-container">
+        
+        <div class="dropdown-container">
+            <!-- <label for="B-dropdown">B:</label> -->
+        <select id="P-dropdown">
+            <option value="">P</option>
+        </select>
+        <select id="B-dropdown">
+            <option value="">B</option>
+        </select>
+        <select id="INV-dropdown">
+            <option value="">INV</option>
+        </select>
+
+        <select id="SCB-dropdown">
+            <option value="">SCB</option>
+        </select>
+
+        <select id="STR-dropdown">
+            <option value="">STR</option>
+        </select>
+        <!-- <br /> -->
+        <select id="M-dropdown">
+            <option value="">M</option>
+        </select>
+        <select id="Robo-dropdown" multiple>
+            <option value="">Robo</option>
+        </select>
+
+        <!-- <button id="filter-button">Apply Filter</button> -->
+        </div>
+        <input type="text" id="search-input" placeholder="Search by node, str_id, row-col, robo" />
+        <!-- <button id="search-button">Search</button> -->
+        <button id="search-button" type="submit"><i class="fa fa-search"></i></button>
+        <button id="filter-search-button" type="submit"><i class="fa fa-filter"></i></button>
+        <div class="map-label-status" id="status-label">
+            Loading ...
+        </div>
+    </div>
+    <div class="map-label-sm">
+    <!-- <div class="dev-name"> -->
+        dev. by Subhash Mahla
+    </div>
+    
+    <div class="location-icon-button" id="location-icon">
+        📍
+        <!-- <i class="fa fa-location-dot"></i> -->
+    </div>
+    <!-- <div class="highlight_options" id="highlight_options">
+        🧩
+    </div> -->
+    <!-- <div class="tracking-switch">
+        <label for="tracking-toggle">Live Tracking</label>
+        <label class="switch">
+            <input type="checkbox" id="tracking-toggle">
+            <span class="slider"></span>
+        </label>
+    </div> -->
+
+    <!-- <button class="highlight_options">
+        <i class="fas fa-h"></i>  Options
+    </button> -->
+    <div class="round-reload-button" onclick="location.reload()">
+        <i class="fa fa-rotate-right" style="color: #fd0000;"></i>
+    </div>
+    <div class="round-option-button-label" id="label-opt" onclick="toggleRadioButtonsLabel()">
+        <i class="fa fa-tags" style="color: #fff707;"></i>
+    </div>
+    <div class="round-option-button-highlight" id="highlight-opt" onclick="toggleRadioButtonsHighlight()">
+        <i class="fa fa-bars" style="color: #071cff;"></i>
+    </div>
+    <div class="round-option-button-info" id="info-opt" onclick="toggleRadioButtonsInfo()">
+        <i class="fa fa-info" style="color: #071cff;"></i>
+    </div>
+    <div class="round-option-button-share" id="share-opt" onclick="shareTextDetials()">
+        <i class="fa fa-share" style="color: #071cff;"></i>
+    </div>
+    <div class="radio-buttons" id="radioButtons-label">
+        <label><input type="radio" name="options" value="Option 0" onclick="logOptionLabel(this)"> Hide All</label>
+        <label><input type="radio" name="options" value="Option 1" onclick="logOptionLabel(this)"> Show Node IDs</label>
+        <label><input type="radio" name="options" value="Option 2" onclick="logOptionLabel(this)"> Show Robo IDs</label>
+        <label><input type="radio" name="options" value="Option 3" onclick="logOptionLabel(this)"> Show String IDs</label>
+    </div>
+    <div class="radio-buttons" id="radioButtons-highlight">
+        <label><input type="radio" name="options" value="Option 1" onclick="logOptionHighlight(this)"> Highlight ICR</label>
+        <label><input type="radio" name="options" value="Option 2" onclick="logOptionHighlight(this)"> Highlight Master</label>
+    </div>
+    <div class="radio-buttons" id="radioButtons-info">
+        <label><input type="radio" name="options" value="Option 1" onclick="logOptionInfo(this)"> Robo-Table Count</label>
+        <label><input type="radio" name="options" value="Option 2" onclick="logOptionInfo(this)"> Robo-Table Count F2</label>
+        <label><input type="radio" name="options" value="Option 3" onclick="logOptionInfo(this)"> Robo-Table Count F3</label>
+    </div>
+    <div id="featureTableContainer">
+        <button id="tableDownloadButton">Download XLSX</button>
+        <button id="tableCloseButton">×</button>
+        
+        <!-- Scrollable wrapper for the table -->
+        <div id="scrollableTableWrapper">
+            <table id="featureTable">
+                <thead>
+                    <tr>
+                        <th>Robo ID</th>
+                        <!-- Dynamic columns for B-INV combination -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dynamic rows for robo_id and B-INV count -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_P1_V16.geojson';
+        const icr_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs_V3.geojson';
+        const road_map_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_road_map_V3.geojson';
+        mapboxgl.accessToken = 'pk.eyJ1Ijoic3ViaGFzaDU0IiwiYSI6ImNseGx1Y3JyMDAyMDcya3M2ZHpxdHFsN28ifQ.knRGnsgFrZMb-_gUb0dQdA';
+        const icr_color_json = {
+                        "ICR1": "#FF0000",
+                        "ICR2": "#00FF00",
+                        "ICR3": "#0000FF",
+                        "ICR4": "#FFFF00",
+                        "ICR5": "#FF00FF",
+                        "ICR6": "#00FFFF",
+                        "ICR7": "#800000",
+                        "ICR8": "#008000",
+                        "ICR9": "#000080",
+                        "ICR10": "#808000",
+                        "ICR11": "#800080",
+                        "ICR12": "#008080",
+                        "ICR13": "#C0C0C0",
+                        "ICR14": "#00ffae", 
+                        "ICR15": "#FF8080",
+                        "ICR16": "#80FF80",
+                        "ICR17": "#8080FF",
+                        "ICR18": "#FF80FF",
+                        "ICR19": "#80FFFF",
+                        "ICR20": "#FFC0C0",
+                        "ICR21": "#C0FFC0",
+                        "ICR22": "#C0C0FF",
+                        "ICR23": "#FFFFC0",
+                        "ICR24": "#C0FFFF",
+                        "ICR25": "#FF8000",
+                        "ICR26": "#8000FF",
+                        "ICR27": "#00FF80",
+                        "ICR28": "#80FF00",
+                        "ICR29": "#FF0080",
+                        "ICR30": "#0080FF",
+                        "ICR31": "#800080",
+                        "ICR32": "#8080C0",
+                        "ICR33": "#FF0080",
+                        "ICR34": "#80C0FF",
+                        "ICR35": "#FF8000",
+                        "ICR36": "#8000C0",
+                        "ICR37": "#80FF00",
+                        "ICR38": "#C08080",
+                        "ICR39": "#80C080",
+                        "ICR40": "#8080C0"
+                        }
+
+        const master_color_json = {
+                                "M1": "#FF0000",
+                                "M2": "#00FF00",
+                                "M3": "#0000FF",
+                                "M4": "#FFFF00",
+                                "M5": "#FF00FF",
+                                "M6": "#00FFFF",
+                                "M7": "#800000",
+                                "M8": "#008000",
+                                "M9": "#000080",
+                                "M10": "#808000",
+                                "M11": "#800080",
+                                "M12": "#008080",
+                                "M13": "#C0C0C0",
+                                "M14": "#00ffae",
+                                "M15": "#999999",
+                                "M16": "#FF8080",
+                                "M17": "#80FF80",
+                                "M18": "#8080FF",
+                                "M19": "#FF80FF",
+                                "M20": "#80FFFF",
+                                "M21": "#FFC0C0",
+                                "M22": "#C0FFC0",
+                                "M23": "#C0C0FF",
+                                "M24": "#FFFFC0",
+                                "M25": "#C0FFFF",
+                                "M26": "#E0E0E0",
+                                "M27": "#FFE0E0",
+                                "M28": "#E0FFE0",
+                                "M29": "#E0E0FF",
+                                "M30": "#FFE0FF",
+                                "M31": "#E0FFFF",
+                                "M32": "#F0F0F0",
+                                "M33": "#FFF0F0",
+                                "M34": "#F0FFF0",
+                                "M35": "#F0F0FF",
+                                "M36": "#FFF0FF",
+                                "M37": "#F0FFFF",
+                                "M38": "#D0D0D0",
+                                "M39": "#FFD0D0",
+                                "M40": "#D0FFD0"
+                                }
+        
+        const default_table_color = '#3a95dc'
+        const default_icr_color = '#3a95dc'
+        var Filtered_Features = ''
+        var CurrentSeleFeatures = ''
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/subhash54/clxrgo01v00oh01qw33lcc44s', // replace with your Mapbox style URL
+            center: [73.125123, 28.126568], // set the initial center coordinates
+            zoom: 12.5 // set the initial zoom level
+        });
+        const directions = new MapboxDirections({
+            accessToken: mapboxgl.accessToken,
+            unit: 'metric',
+            profile: 'mapbox/driving'
+        });
+
+        let geoJsonData_tables;
+        fetch(table_geojson_url)
+            .then(response => response.json())
+            .then(data => {
+                geoJsonData_tables = data;
+            });
+
+        let geoJsonData_icr;
+        fetch(icr_geojson_url)
+            .then(response => response.json())
+            .then(data => {
+                geoJsonData_icr = data;
+            });
+        let geoJsonData_road_map;
+        fetch(road_map_geojson_url)
+            .then(response => response.json())
+            .then(data => {
+                geoJsonData_road_map = data;
+            });
+            
+        // Add live location tracking
+        let userMarker;
+        let watchId;
+        let userInteracted = false;
+
+        function updateUserLocation(position) {
+            const userLocation = [position.coords.longitude, position.coords.latitude];
+
+            if (!userMarker) {
+                userMarker = new mapboxgl.Marker({ element: createRoundMarker() })
+                    .setLngLat(userLocation)
+                    .addTo(map);
+            } else {
+                userMarker.setLngLat(userLocation);
+            }
+
+            if (!userInteracted) {
+                map.flyTo({
+                    center: userLocation,
+                    zoom: 20
+                });
+            }
+        }
+
+        function createRoundMarker() {
+            const marker = document.createElement('div');
+            marker.className = 'round-marker';
+            return marker;
+        }
+
+        function handleLocationError(error) {
+            console.error('Error retrieving location:', error);
+        }
+
+        function startTracking() {
+            if (navigator.geolocation) {
+                watchId = navigator.geolocation.watchPosition(updateUserLocation, handleLocationError, { enableHighAccuracy: true });
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+            }
+        }
+
+        function stopTracking() {
+            if (navigator.geolocation && watchId) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+        }
+
+        document.getElementById('location-icon').addEventListener('click', () => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    updateUserLocation(position);
+                    userInteracted = false; // reset user interaction
+                    startTracking();
+                }, handleLocationError, { enableHighAccuracy: true });
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+            }
+        });
+
+        // Detect user interactions with the map
+        map.on('dragstart', () => {
+            userInteracted = true;
+        });
+
+        map.on('zoomstart', () => {
+            userInteracted = true;
+        });
+
+        // Initialize map without live tracking
+        stopTracking();
+
+        
+        map.on('load', () => {
+            map.addSource('roadmap', {
+                'type': 'geojson',
+                'data': geoJsonData_road_map
+            });
+
+            map.addLayer({
+                'id': 'roadmap-layer',
+                'type': 'line',
+                'source': 'roadmap',
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    // 'line-color': '#ff0000',
+                    'line-color': '#565773', // Change this for desired color
+                    'line-width': 5, // Change this for desired line width
+                    'line-opacity': 1 // Change this for desired opacity (0-1)
+                }
+            });
+            map.addSource('shapefile-source_tables', {
+                'type': 'geojson',
+                'data': table_geojson_url
+            });
+            map.addSource('shapefile-icr', {
+                'type': 'geojson',
+                'data': icr_geojson_url
+            });
+
+            map.addLayer({
+                'id': 'shapefile-layer_tables',
+                'type': 'fill',
+                'source': 'shapefile-source_tables',
+                'layout': {},
+                'paint': {
+                    'fill-color': '#3a95dc',
+                    'fill-opacity': 0.8
+                }
+            });
+
+            map.addLayer({
+                'id': 'outline_tables',
+                'type': 'line',
+                'source': 'shapefile-source_tables',
+                'layout': {},
+                'paint': {
+                    'line-color': '#000',
+                    'line-width': 1
+                }
+            });
+            change_status_text('Map Loaded')
+            map.addLayer({
+                        'id': 'table-label',
+                        'type': 'symbol',
+                        'source': 'shapefile-source_tables',
+                        'layout': {
+                            'text-field': ['get', 'node_id'],
+                            'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                            'text-size': 10,
+                            'text-offset': [-0.5, 0], // Adjust the text position
+                            'text-justify': 'auto',
+                            'text-anchor': 'top',
+                            'text-rotate': -90, // Rotate the text 90 degrees clockwise
+                            'text-allow-overlap': false, // Prevent text from displaying if it would overlap with other symbols
+                            'text-ignore-placement': false // Prevent text from displaying if it doesn't fit within the polygon
+                        },
+                        'paint': {
+                            'text-color': 'yellow', // Inner text color (white)
+                            'text-halo-color': '#000000', // Outer line color (black)
+                            'text-halo-width': 0.5, // Width of the outer line
+                            'text-halo-blur': 0 // Halo blur
+                        }
+            });
+            map.setLayoutProperty('table-label', 'visibility', 'none');
+
+            map.on('click', 'shapefile-layer_tables', (e) => {
+                const coordinates = e.lngLat;
+                const properties = e.features[0].properties;
+                change_status_text(`Tables: 1 (Str: 1, MdCount: ${calculateModuleCount([e.features[0]])})`)
+                new mapboxgl.Popup()
+                    .setLngLat(coordinates)
+                    // .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
+                    .setHTML(popup_design_complete(properties))
+                    .addTo(map);
+                    map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                                    'case',
+                                    // ['==', ['get', 'node_id'], properties.node_id],
+                                    // '#ff0000',
+                                    ['==', ['get', 'str_id'], properties.str_id],
+                                    '#ff0000',
+                                    '#3a95dc'
+                                ]);
+            });
+
+            map.on('mouseenter', 'shapefile-layer_tables', () => {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+
+            map.on('mouseleave', 'shapefile-layer_tables', () => {
+                map.getCanvas().style.cursor = '';
+            });
+
+            map.addLayer({
+                'id': 'shapefile-layer_icr',
+                'type': 'fill',
+                'source': 'shapefile-icr',
+                'layout': {},
+                'paint': {
+                    'fill-color': '#E74C3C',
+                    'fill-opacity': 0.6
+                }
+            });
+            function highlight_icr_i() {
+                const features = geoJsonData_icr.features;
+                const paintExpression = ['case'];
+
+                features.forEach((feature) => {
+                    const icr = "ICR" + feature.properties.icr;
+                    const icr_color = icr_color_json[icr]  || default_icr_color;
+                    // console.log (icr, icr_color)
+                    paintExpression.push(
+                        ['==', ['get', 'icr'], feature.properties.icr],
+                        icr_color
+                    );
+                });
+
+                paintExpression.push('#000000'); // Default color if no matches
+
+                map.setPaintProperty('shapefile-layer_icr', 'fill-color', paintExpression);
+            }
+            highlight_icr_i()
+            map.addLayer({
+                'id': 'outline_icr',
+                'type': 'line',
+                'source': 'shapefile-icr',
+                'layout': {},
+                'paint': {
+                    'line-color': '#000',
+                    'line-width': 1
+                }
+            });
+
+            // Add a symbol layer for text labels
+            map.addLayer({
+                'id': 'label-icr',
+                'type': 'symbol',
+                'source': 'shapefile-icr',
+                'layout': {
+                    'text-field': [
+                                    'format',
+                                    ['case',
+                                        ['==', ['get', 'icr'], 'MCR' && 'Jakson O&M Office'],
+                                        // ['==', ['get', 'icr'], 'Jakson O&M Office'], 
+                                        '', 
+                                        'ICR '
+                                    ],
+                                    {},
+                                    ['get', 'icr'],
+                                    {}
+                                ],
+                 
+                    'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                    'text-size': 12,
+                    'text-offset': [0, 0], // Adjust the text position
+                    'text-justify': 'auto',
+                    'text-anchor': 'top'
+                },
+                'paint': {
+                    'text-color': '#F84C40', // Inner text color (white)
+                    'text-halo-color': '#000000', // Outer line color (black)
+                    'text-halo-width': 1, // Width of the outer line
+                    'text-halo-blur': 0 // Halo blur
+                }
+            });
+
+
+            map.on('click', 'shapefile-layer_icr', (e) => {
+                const coordinates = e.lngLat;
+                const properties = e.features[0].properties;
+                new mapboxgl.Popup()
+                    .setLngLat(coordinates)
+                    .setHTML(`<br /><strong>ICR :</strong> ${properties.icr}`)
+                    .addTo(map);
+                if (userMarker) {
+                            directions.setOrigin(userMarker.getLngLat());
+                            directions.setDestination(coordinates);
+                            map.addControl(directions, 'top-left');
+                        }
+            });
+            // console.log(geoJsonData_road_map);
+            
+
+            populateDropdowns(geoJsonData_tables);
+            function popup_design_complete(properties) {
+                return `<strong>P: </strong> ${properties.phase}<strong>  Row-Col: </strong> ${properties.row_col}<br /><strong>Str: </strong> ${properties.str_id}<br /><strong>Node: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}<br /><strong>Robo ID: </strong> ${properties.robo_id}<br />`
+                // return `<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`
+            }
+            
+            function highlight_features (selectedFeatures, showPopups){
+                CurrentSeleFeatures = selectedFeatures
+                const popups = document.getElementsByClassName("mapboxgl-popup");
+                if (popups.length) {
+                    for (let i = 0; i < popups.length; i++) {
+                        const element = popups[i];
+                        // console.log(element)
+                        element.remove();
+                        // Do something with the element
+                    }
+                    
+                //     popups.forEach(pop=> {
+                //         pop.remove();
+                // })
+
+                    
+                }
+                if (selectedFeatures.length > 0) {
+                    change_status_text(`Tables: ${selectedFeatures.length} (Str: ${countUniqueStrIds(selectedFeatures)}, MdCount: ${calculateModuleCount(selectedFeatures)})`)
+                // Combine the bounds of all selected features asynchronously
+                const combineBoundsAsync = async () => {
+                    const combinedBounds = new mapboxgl.LngLatBounds();
+                    for (let i = 0; i < selectedFeatures.length; i++) {
+                        const feature = selectedFeatures[i];
+                        const coordinates = feature.geometry.coordinates[0][0];
+                        const featureBounds = coordinates.reduce((bounds, coord) => {
+                            return bounds.extend(coord);
+                        }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+
+                        combinedBounds.extend(featureBounds);
+
+                        // Yield to the browser to avoid blocking the UI
+                        if (i % 10 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+                    }
+                    return combinedBounds;
+                };
+
+                // Fit map to combined bounds
+                combineBoundsAsync().then(combinedBounds => {
+                    map.fitBounds(combinedBounds, { padding: 50 });
+                });
+
+                // Update paint property for selected features asynchronously
+                const updatePaintPropertyAsync = async () => {
+                    const paintProperty = [
+                        'case',
+                        ...selectedFeatures.flatMap(feature => [
+                            ['==', ['get', 'eq_id'], feature.properties.eq_id],
+                            '#ff0000'
+                        ]),
+                        default_table_color || '#3a95dc'
+                    ];
+
+                    map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintProperty);
+                };
+
+                updatePaintPropertyAsync();
+                if (showPopups){
+                    selectedFeatures.forEach(feature => {
+                        const coordinates = feature.geometry.coordinates[0][0];
+                        const bounds = coordinates.reduce((bounds, coord) => {
+                            return bounds.extend(coord);
+                        }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+
+                        const properties = feature.properties;
+                        new mapboxgl.Popup()
+                            .setLngLat(bounds.getCenter())
+                            // .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID:</strong> ${properties.node_id}`)
+                            .setHTML(popup_design_complete(properties))
+                            .addTo(map);
+                    });
+                }
+                } else {
+                    alert('No matching polygons found');
+                }
+            }
+            document.getElementById('filter-search-button').addEventListener('click', () => {
+                const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
+                if(Filtered_Features.length){
+                    perform_search(searchValue, Filtered_Features)
+                }else{
+                    perform_search(searchValue, geoJsonData_tables.features)
+                }
+
+            });
+
+            document.getElementById('search-button').addEventListener('click', () => {
+                const searchValue = document.getElementById('search-input').value.trim().toLowerCase();
+                perform_search (searchValue, geoJsonData_tables.features)
+            });
+
+            function perform_search (searchValue, features) {
+                if (searchValue) {
+                    change_status_text("Searching ...")
+                    // fetch(table_geojson_url)
+                    //     .then(response => response.json())
+                    //     .then(data => {
+                            // const features = geoJsonData_tables.features;
+                            const searchSeleFeatures = []
+                            if (searchValue.includes(",")) {
+                                const search_values = searchValue.replace(/\s+/g, '').split(",");
+                                search_values.forEach(search_value => {
+                                    const feature = features.find(f => {
+                                        const nodeId = f.properties.node_id !== undefined ? String(f.properties.node_id).toLowerCase() : '';
+                                        const roboId = f.properties.robo_id !== undefined ? String(f.properties.robo_id).toLowerCase() : '';
+                                        const strId = f.properties.str_id !== undefined ? String(f.properties.str_id).toLowerCase() : '';
+                                        const rowcolId = f.properties.row_col !== undefined ? String(f.properties.row_col).toLowerCase() : '';
+                                        if (nodeId === search_value){
+                                            search_attri = "nodeid";
+                                            // searchSeleFeatures.push(f);
+                                            // return true;
+
+                                        }
+                                        if (roboId === search_value){
+                                            search_attri = "roboid";
+                                            // searchSeleFeatures.push(f);
+                                            // return true;
+
+                                        }
+                                        // console.log(search_value)
+                                        // if (strId === searchValue){
+                                        //     search_attri = "strid";
+                                        //     return true;
+                                        // }
+                                        // if (rowcolId === searchValue){
+                                        //     search_attri = "rcid";
+                                        //     return true;
+                                        // }
+                                        if(nodeId === search_value || strId === search_value || rowcolId === search_value || roboId === search_value){
+                                            searchSeleFeatures.push(f);
+                                        }
+                                    });
+                                    // searchSeleFeatures.push(feature);
+                                    // console.log(search_value);
+                                    // console.log(feature);
+                                });
+                                // console.log(searchSeleFeatures)
+                                change_status_text('Search Done');
+                                highlight_features(searchSeleFeatures, true);
+                                } 
+                            else {
+                            console.log("only one search.");
+                            
+                            var search_attri = "";
+                            const feature = features.find(f => {
+                                const nodeId = f.properties.node_id !== undefined ? String(f.properties.node_id).toLowerCase() : '';
+                                const strId = f.properties.str_id !== undefined ? String(f.properties.str_id).toLowerCase() : '';
+                                const rowcolId = f.properties.row_col !== undefined ? String(f.properties.row_col).toLowerCase() : '';
+                                const roboId = f.properties.robo_id !== undefined ? String(f.properties.robo_id).toLowerCase() : '';
+                                if (nodeId === searchValue){
+                                    search_attri = "nodeid";
+                                    // return true;
+                                }
+                                if (strId === searchValue){
+                                    search_attri = "strid";
+                                    // return true;
+                                }
+                                if (rowcolId === searchValue){
+                                    search_attri = "rcid";
+                                    // return true;
+                                }
+                                // return nodeId === searchValue || strId === searchValue || rowcolId === searchValue;
+                                if(nodeId === searchValue || strId === searchValue || rowcolId === searchValue || roboId === searchValue){
+                                    searchSeleFeatures.push(f);
+                                }
+                            });
+                            console.log(`Searching for: ${searchValue}`);
+                            // console.log(feature)
+                            if (searchSeleFeatures.length){
+                                change_status_text('Search Done');
+                                highlight_features(searchSeleFeatures, true)
+                            }
+                            // if (feature) {
+                            //     console.log(`Feature found: ${JSON.stringify(feature.properties)}`);
+                            //     const coordinates = feature.geometry.coordinates[0][0][0];
+                            //     const bounds = feature.geometry.coordinates[0][0].reduce((bounds, coord) => {
+                            //         return bounds.extend(coord);
+                            //     }, new mapboxgl.LngLatBounds(coordinates, coordinates));
+                            //     // const combinedBounds = selectedFeatures.reduce((bounds, feature) => {
+                            //     //     const coordinates = feature.geometry.coordinates[0][0];
+                            //     //     const featureBounds = coordinates.reduce((bounds, coord) => {
+                            //     //         return bounds.extend(coord);
+                            //     //     }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+                            //     //     return bounds.extend(featureBounds);
+                            //     // }, new mapboxgl.LngLatBounds());
+
+                            //     map.fitBounds(bounds, {
+                            //         padding: 150
+                            //     });
+                            //     if (search_attri === "strid"){
+                            //     map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                            //         'case',
+                            //         // ['==', ['get', 'node_id'], feature.properties.node_id],
+                            //         // '#ff0000',
+                            //         ['==', ['get', 'str_id'], feature.properties.str_id],
+                            //         '#ff0000',
+                            //         // ['==', ['get', 'row_col'], feature.properties.row_col],
+                            //         // '#ff0000',
+                            //         '#3a95dc'
+                            //     ]);}
+                            //     if (search_attri === "nodeid"){
+                            //     map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                            //         'case',
+                            //         ['==', ['get', 'node_id'], feature.properties.node_id],
+                            //         '#ff0000',
+                            //         '#3a95dc'
+                            //     ]);}
+                            //     if (search_attri === "rcid"){
+                            //     map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+                            //         'case',
+                            //         ['==', ['get', 'row_col'], feature.properties.row_col],
+                            //         '#ff0000',
+                            //         '#3a95dc'
+                            //     ]);}
+                            //     const properties = feature.properties;
+                            //     new mapboxgl.Popup()
+                            //         .setLngLat(bounds.getCenter())
+                            //         // .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID: M</strong>${properties.tkr_master}<strong> - </strong> ${properties.node_id}`)
+                            //         .setHTML(popup_design_complete(properties))
+                            //         .addTo(map);
+                            //     console.log('Match found and highlighted');
+                            // } 
+                            else {
+                                console.log('No matching polygon found');
+                                alert('No matching table found');
+                                change_status_text('No matching table/ID found')
+                            }
+                        // })
+                        // .catch(err => {
+                        //     console.error('Error fetching GeoJSON data:', err);
+                        // });
+                            }
+                } else {
+                    alert('Please enter a valid id');
+                }
+            };
+        
+        });
+        function countUniqueStrIds(searchSeleFeatures) {
+                const uniqueStrIds = new Set();
+                
+                // Loop through each feature in the searchSeleFeatures array
+                searchSeleFeatures.forEach(feature => {
+                    if (feature.properties.str_id) {
+                        uniqueStrIds.add(feature.properties.str_id); // Add the str_id to the Set
+                    }
+                });
+                // Return the size of the Set, which is the count of unique str_id values
+                return uniqueStrIds.size;
+        }
+        function calculateModuleCount(searchSeleFeatures) {
+                var ModuleCount = 0;
+                
+                // Loop through each feature in the searchSeleFeatures array
+                searchSeleFeatures.forEach(feature => {
+                    if (feature.properties.md_count) {
+                        ModuleCount = ModuleCount + feature.properties.md_count; // Add the str_id to the Set
+                    }
+                });
+                // Return the size of the Set, which is the count of unique str_id values
+                return ModuleCount;
+        }
+        function change_status_text(new_text){
+            document.getElementById("status-label").textContent = new_text;
+        }
+        function toggleRadioButtonsLabel() {
+                const radioButtonsLabel = document.getElementById('radioButtons-label');
+                radioButtonsLabel.style.display = radioButtonsLabel.style.display === 'block' ? 'none' : 'block';
+                document.getElementById('radioButtons-highlight').style.display = 'none'
+                document.getElementById('radioButtons-info').style.display = 'none'
+            }
+        function toggleRadioButtonsHighlight() {
+                const radioButtonsHighlight = document.getElementById('radioButtons-highlight');
+                radioButtonsHighlight.style.display = radioButtonsHighlight.style.display === 'block' ? 'none' : 'block';
+                document.getElementById('radioButtons-label').style.display = 'none'
+                document.getElementById('radioButtons-info').style.display = 'none'
+            }
+        function toggleRadioButtonsInfo() {
+                const radioButtonsInfo = document.getElementById('radioButtons-info');
+                radioButtonsInfo.style.display = radioButtonsInfo.style.display === 'block' ? 'none' : 'block';
+                document.getElementById('radioButtons-label').style.display = 'none'
+                document.getElementById('radioButtons-highlight').style.display = 'none'
+            }
+        function logOptionLabel(radio) {
+            console.log('Selected option:', radio.value);
+            if(radio.value === 'Option 0'){
+                map.setLayoutProperty('table-label', 'visibility', 'none');
+                    // map.setLayoutProperty('table-label', 'text-field', ['get', 'node_id']);
+                    // var visibility = map.getLayoutProperty('table-label', 'visibility');
+
+                    // if (visibility === 'visible') {
+                    //     // If the layer is currently visible, hide it
+                        
+                    // } else {
+                    //     // If the layer is currently hidden, show it
+                    //     map.setLayoutProperty('table-label', 'visibility', 'visible');
+                    // }
+                }
+            if(radio.value === 'Option 1'){
+                    map.setLayoutProperty('table-label', 'text-field', ['get', 'node_id']);
+                    map.setLayoutProperty('table-label', 'visibility', 'visible');
+                }
+            if(radio.value === 'Option 2'){
+                    map.setLayoutProperty('table-label', 'text-field', ['get', 'robo_id']);
+                    map.setLayoutProperty('table-label', 'visibility', 'visible');
+                }
+            if(radio.value === 'Option 3'){
+                    map.setLayoutProperty('table-label', 'text-field', ['get', 'str_id']);
+                    map.setLayoutProperty('table-label', 'visibility', 'visible');
+                }
+            }
+        function logOptionHighlight(radio) {
+                console.log('Selected option:', radio.value);
+                if(radio.value === 'Option 1'){
+                    highlight_icr();
+                }
+                if(radio.value === 'Option 2'){
+                    highlight_master();
+                }
+                
+            }
+        function logOptionInfo(radio) {
+                console.log('Selected option:', radio.value);
+                if(radio.value === 'Option 1'){
+                    generateRoboCountTable(CurrentSeleFeatures); // Generate table with data
+                    document.getElementById('featureTableContainer').style.display = 'block';
+                }
+                if(radio.value === 'Option 2'){
+                    generateRoboCountTable_format2(CurrentSeleFeatures); // Generate table with data
+                    document.getElementById('featureTableContainer').style.display = 'block';
+                }
+                if(radio.value === 'Option 3'){
+                    generateRoboCountTable_format3(CurrentSeleFeatures); // Generate table with data
+                    document.getElementById('featureTableContainer').style.display = 'block';
+                }
+                // if(radio.value === 'Option 2'){
+                //     highlight_master();
+                // }
+                
+            }
+
+        // function generateRoboCountTable(features) {
+        //     const table = document.getElementById('featureTable');
+        //     const thead = table.querySelector('thead tr');
+        //     const tbody = table.querySelector('tbody');
+
+        //     // Create a map to group the features by robo_id and B-INV combination
+        //     const featureMap = {};
+        //     const columnSet = new Set();
+
+        //     features.forEach(feature => {
+        //         const { robo_id, B, INV } = feature.properties;
+        //         const columnKey = `B${B}-I${INV}`;
+
+        //         // Add column to the set (to track unique B-INV combinations)
+        //         columnSet.add(columnKey);
+
+        //         // Initialize feature map for the robo_id if not already present
+        //         if (!featureMap[robo_id]) {
+        //             featureMap[robo_id] = {};
+        //         }
+
+        //         // Initialize the count for the B-INV combination
+        //         if (!featureMap[robo_id][columnKey]) {
+        //             featureMap[robo_id][columnKey] = 0;
+        //         }
+
+        //         // Increment the count for the B-INV combination
+        //         featureMap[robo_id][columnKey]++;
+        //     });
+
+        //     // Clear the table before adding new content
+        //     thead.innerHTML = '<th>Robo ID</th>';
+        //     tbody.innerHTML = '';
+
+        //     // Add dynamic columns for B-INV combinations
+        //     const columns = Array.from(columnSet);
+        //     columns.forEach(column => {
+        //         const th = document.createElement('th');
+        //         th.textContent = column;
+        //         thead.appendChild(th);
+        //     });
+
+        //     // Add rows for each robo_id
+        //     Object.keys(featureMap).forEach(robo_id => {
+        //         const tr = document.createElement('tr');
+        //         const tdRoboId = document.createElement('td');
+        //         tdRoboId.textContent = robo_id;
+        //         tr.appendChild(tdRoboId);
+
+        //         // Add counts for each B-INV combination
+        //         columns.forEach(column => {
+        //             const td = document.createElement('td');
+        //             td.textContent = featureMap[robo_id][column] || 0;
+        //             tr.appendChild(td);
+        //         });
+
+        //         tbody.appendChild(tr);
+        //     });
+        // }
+        function generateRoboCountTable(features) {
+            // clearAndGenerateRoboCountTable();
+            const table = document.getElementById('featureTable');
+            // var table = document.getElementById('featureTable');
+
+            const thead = table.querySelector('thead tr');
+            const tbody = table.querySelector('tbody');
+
+            // Create a map to group the features by robo_id and B-INV combination
+            const featureMap = {};
+            const columnSet = new Set();
+
+            features.forEach(feature => {
+                const { robo_id, B, INV } = feature.properties;
+                const columnKey = `B${B}-I${INV}`;
+
+                // Add column to the set (to track unique B-INV combinations)
+                columnSet.add(columnKey);
+
+                // Initialize feature map for the robo_id if not already present
+                if (!featureMap[robo_id]) {
+                    featureMap[robo_id] = {};
+                }
+
+                // Initialize the count for the B-INV combination
+                if (!featureMap[robo_id][columnKey]) {
+                    featureMap[robo_id][columnKey] = 0;
+                }
+
+                // Increment the count for the B-INV combination
+                featureMap[robo_id][columnKey]++;
+            });
+
+            // Helper function to sort B-INV headers
+            function sortHeaders(a, b) {
+                const [aB, aI] = a.match(/\d+/g).map(Number);  // Extract numbers from Bx-Iy
+                const [bB, bI] = b.match(/\d+/g).map(Number);
+                return aB - bB || aI - bI;  // Sort by B first, then by INV
+            }
+
+            // Helper function to sort robo_id (Auto1, Semi2, etc.)
+            function sortRoboId(a, b) {
+                const aPrefix = a.match(/[A-Za-z]+/)[0];  // Extract the prefix (Auto, Semi, etc.)
+                const bPrefix = b.match(/[A-Za-z]+/)[0];
+                const aNum = parseInt(a.match(/\d+/)[0]);  // Extract the numeric part
+                const bNum = parseInt(b.match(/\d+/)[0]);
+
+                // Sort first by prefix alphabetically, then by the numeric part
+                if (aPrefix === bPrefix) {
+                    return aNum - bNum;
+                } else {
+                    return aPrefix.localeCompare(bPrefix);
+                }
+            }
+
+            // Clear the table before adding new content
+            thead.innerHTML = '<th>Robo ID</th>';
+            tbody.innerHTML = '';
+
+            // Sort the columns (B-INV combinations) before adding to the table
+            const columns = Array.from(columnSet).sort(sortHeaders);
+            columns.forEach(column => {
+                const th = document.createElement('th');
+                th.textContent = column;
+                thead.appendChild(th);
+            });
+
+            // Sort the robo_ids and add rows to the table
+            Object.keys(featureMap).sort(sortRoboId).forEach(robo_id => {
+                const tr = document.createElement('tr');
+                const tdRoboId = document.createElement('td');
+                tdRoboId.textContent = robo_id;
+                tr.appendChild(tdRoboId);
+
+                // Add counts for each B-INV combination
+                columns.forEach(column => {
+                    const td = document.createElement('td');
+                    td.textContent = featureMap[robo_id][column] || 0;
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+            });
+        }
+        function generateRoboCountTable_format2(features) {
+            const table = document.getElementById('featureTable');
+            // var table = document.getElementById('featureTable');
+            // clearAndGenerateRoboCountTable();
+            // if(table){
+            //     table.innerHTML = '';
+            // }
+            const thead = table.querySelector('thead tr');
+            const tbody = table.querySelector('tbody');
+
+            // Create a map to group the features by robo_id, B, and INV combination
+            const featureMap = {};
+
+            features.forEach(feature => {
+                const { robo_id, B, INV, md_count } = feature.properties;
+                const key = `${robo_id}-${B}-${INV}`;
+
+                // Initialize feature map if not present
+                if (!featureMap[key]) {
+                    featureMap[key] = {
+                        robo_id: robo_id,
+                        B: B,
+                        INV: INV,
+                        count: 0,
+                        totalModules: 0
+                    };
+                }
+
+                // Increment the count and sum the md_count for "Total Module"
+                featureMap[key].count++;
+                featureMap[key].totalModules += md_count || 0;
+            });
+
+            // Clear the table before adding new content
+            thead.innerHTML = '<th>Robo ID</th><th>B</th><th>INV</th><th>Table Count</th><th>Total Module</th>';
+            tbody.innerHTML = '';
+
+            // Helper function to sort robo_id
+            function sortRoboId(a, b) {
+                const aPrefix = a.match(/[A-Za-z]+/)[0];  // Extract the prefix (e.g., "Auto", "Semi")
+                const bPrefix = b.match(/[A-Za-z]+/)[0];
+                const aNum = parseInt(a.match(/\d+/)[0]);  // Extract the numeric part (e.g., 1, 2)
+                const bNum = parseInt(b.match(/\d+/)[0]);
+
+                // Sort by prefix first, then by the numeric part
+                if (aPrefix === bPrefix) {
+                    return aNum - bNum;
+                } else {
+                    return aPrefix.localeCompare(bPrefix);
+                }
+            }
+
+            // Sort the data by robo_id, B, and INV
+            const sortedData = Object.values(featureMap).sort((a, b) => {
+                const roboComparison = sortRoboId(a.robo_id, b.robo_id);
+                if (roboComparison !== 0) return roboComparison;
+
+                const BComparison = a.B - b.B;
+                if (BComparison !== 0) return BComparison;
+
+                return a.INV - b.INV;  // If both robo_id and B are the same, compare by INV
+            });
+
+            // Iterate over the sorted data and populate the table
+            sortedData.forEach(rowData => {
+                const tr = document.createElement('tr');
+
+                // Create and append the cells
+                const tdRoboId = document.createElement('td');
+                tdRoboId.textContent = rowData.robo_id;
+                tr.appendChild(tdRoboId);
+
+                const tdB = document.createElement('td');
+                tdB.textContent = rowData.B;
+                tr.appendChild(tdB);
+
+                const tdINV = document.createElement('td');
+                tdINV.textContent = rowData.INV;
+                tr.appendChild(tdINV);
+
+                const tdCount = document.createElement('td');
+                tdCount.textContent = rowData.count;
+                tr.appendChild(tdCount);
+
+                const tdTotalModules = document.createElement('td');
+                tdTotalModules.textContent = rowData.totalModules;
+                tr.appendChild(tdTotalModules);
+
+                tbody.appendChild(tr);
+            });
+        }
+        function clearAndGenerateRoboCountTable() {
+            const table = document.getElementById('featureTable');
+            
+            // Check if the table exists
+            if (!table) {
+                console.error('Table with id "featureTable" not found.');
+                return;  // Stop execution if the table doesn't exist
+            }
+
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+
+            // Check if thead and tbody exist, if not, create them
+            if (!thead) {
+                console.error('Table header (thead) not found, creating one.');
+                table.appendChild(document.createElement('thead'));  // Create a new <thead>
+            }
+            if (!tbody) {
+                console.error('Table body (tbody) not found, creating one.');
+                table.appendChild(document.createElement('tbody'));  // Create a new <tbody>
+            }
+
+            // Clear the table if it has any existing data
+            table.querySelector('thead').innerHTML = '';  // Clear table headers
+            table.querySelector('tbody').innerHTML = '';  // Clear table body
+        }
+        function generateRoboCountTable_format3(features) {
+            var table = document.getElementById('featureTable');
+            // clearAndGenerateRoboCountTable();
+            // if(table){
+            //     table.innerHTML = '';
+            // }
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
+
+            // Clear the table before adding new content
+            thead.innerHTML = '';
+            tbody.innerHTML = '';
+
+            // // Add the first row with the title and generation time
+            // const titleRow = document.createElement('tr');
+            // const titleCell = document.createElement('th');
+            // titleCell.colSpan = 4;  // Span across 4 columns
+            // titleCell.textContent = 'Robo-Table Count F3';
+            // titleCell.style.textAlign = 'center';  // Center the title
+            // titleRow.appendChild(titleCell);
+            // thead.appendChild(titleRow);
+
+            // // Add the second row with the generation time
+            // const timestampRow = document.createElement('tr');
+            // const timestampCell = document.createElement('th');
+            // const now = new Date();
+            // timestampCell.colSpan = 4;  // Span across 4 columns
+            // timestampCell.textContent = `Generated on: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+            // timestampCell.style.textAlign = 'center';  // Center the timestamp
+            // timestampRow.appendChild(timestampCell);
+            // thead.appendChild(timestampRow);
+
+            // Add the header row for the table columns
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = '<th>B</th><th>INV</th><th>Table Count</th><th>Total Module</th>';
+            thead.appendChild(headerRow);
+
+            // Create a map to group the features by B and INV combination
+            const featureMap = {};
+
+            features.forEach(feature => {
+                const { B, INV, md_count } = feature.properties;
+                const key = `${B}-${INV}`;
+
+                // Initialize feature map if not present
+                if (!featureMap[key]) {
+                    featureMap[key] = {
+                        B: B,
+                        INV: INV,
+                        count: 0,
+                        totalModules: 0
+                    };
+                }
+
+                // Increment the count and sum the md_count for "Total Module"
+                featureMap[key].count++;
+                featureMap[key].totalModules += md_count || 0;
+            });
+
+            // Sort the data by B and then by INV
+            const sortedData = Object.values(featureMap).sort((a, b) => {
+                const BComparison = a.B - b.B;
+                if (BComparison !== 0) return BComparison;
+
+                return a.INV - b.INV;  // If B values are the same, sort by INV
+            });
+
+            // Iterate over the sorted data and populate the table
+            sortedData.forEach(rowData => {
+                const tr = document.createElement('tr');
+
+                // Create and append the cells
+                const tdB = document.createElement('td');
+                tdB.textContent = rowData.B;
+                tr.appendChild(tdB);
+
+                const tdINV = document.createElement('td');
+                tdINV.textContent = rowData.INV;
+                tr.appendChild(tdINV);
+
+                const tdCount = document.createElement('td');
+                tdCount.textContent = rowData.count;
+                tr.appendChild(tdCount);
+
+                const tdTotalModules = document.createElement('td');
+                tdTotalModules.textContent = rowData.totalModules;
+                tr.appendChild(tdTotalModules);
+
+                tbody.appendChild(tr);
+            });
+        }
+
+
+        // Show table button functionality
+        // document.getElementById('showTableButton').addEventListener('click', () => {
+        //     generateTable(searchSeleFeatures); // Generate table with data
+        //     document.getElementById('featureTableContainer').style.display = 'block'; // Show the table
+        // });
+
+        // Close button functionality
+        document.getElementById('tableCloseButton').addEventListener('click', () => {
+            document.getElementById('featureTableContainer').style.display = 'none'; // Hide the table
+        });
+        // Function to download table data as XLSX
+        function downloadTableAsExcel() {
+            const table = document.getElementById('featureTable');
+            const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+            XLSX.writeFile(wb, "Robo table count - B-INV.xlsx");
+        }
+
+        // Download button functionality
+        document.getElementById('tableDownloadButton').addEventListener('click', downloadTableAsExcel);
+        // function highlight_icr() {
+        //     const features = geoJsonData_tables.features;
+        //     const paintExpression = ['case'];
+
+        //     features.forEach((feature) => {
+        //         const icr = "ICR" + feature.properties.B;
+        //         const icr_color = icr_color_json[icr]  || default_table_color;
+        //         // console.log (icr, icr_color)
+        //         paintExpression.push(
+        //             ['==', ['get', 'B'], feature.properties.B],
+        //             icr_color
+        //         );
+        //     });
+
+        //     paintExpression.push('#000000'); // Default color if no matches
+
+        //     map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintExpression);
+        // }
+        async function highlight_icr() {
+            const features = geoJsonData_tables.features;
+            const paintExpression = ['case'];
+            const chunkSize = 10; // Number of features to process in one go
+
+            for (let i = 0; i < features.length; i++) {
+                const feature = features[i];
+                const icr = "ICR" + feature.properties.B;
+                const icr_color = icr_color_json[icr] || default_table_color;
+
+                paintExpression.push(
+                    ['==', ['get', 'B'], feature.properties.B],
+                    icr_color
+                );
+
+                // Yield to the browser after processing a chunk of features
+                if (i % chunkSize === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+            }
+
+            paintExpression.push('#000000'); // Default color if no matches
+
+            map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintExpression);
+        }
+
+        function highlight_master() {
+            const features = geoJsonData_tables.features;
+            const paintExpressionm = ['case'];
+
+            features.forEach((feature) => {
+                const master = "M" + feature.properties.tkr_master;
+                const master_color = master_color_json[master]  || default_table_color;
+                // console.log (master, master_color)
+                paintExpressionm.push(
+                    ['==', ['get', 'tkr_master'], feature.properties.tkr_master],
+                    master_color
+                );
+            });
+
+            paintExpressionm.push('#000000'); // Default color if no matches
+
+            map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintExpressionm);
+        }
+        function text_for_share(){
+            var sharing_text = 'Solar DTM'
+            if (CurrentSeleFeatures.length > 1) {
+                sharing_text = `Tables: ${CurrentSeleFeatures.length} (Str: ${countUniqueStrIds(CurrentSeleFeatures)}, MdCount: ${calculateModuleCount(CurrentSeleFeatures)})`
+            }
+            else{
+                if (CurrentSeleFeatures.length == 1){
+
+                }
+            }
+            return sharing_text
+        }
+        function shareTextDetials() {
+            var sharing_text = text_for_share()
+            
+            // Check for Web Share API support
+            if (navigator.share) {
+                navigator.share({
+                title: 'Solar DTM',
+                text: sharing_text
+                })
+                .then(() => console.log('Shared successfully'))
+                .catch(error => console.error('Error sharing:', error));
+            } else {
+                // Fallback to traditional method (e.g., copying to clipboard)
+                const tempLink = document.createElement('a');
+                tempLink.href = `data:text/plain;charset=utf-8,${encodeURIComponent(sharing_text)}`;
+                tempLink.download = 'share.txt';
+                tempLink.style.display = 'none';
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+                alert('Selected tables data copied to clipboard. Paste it into your desired app.');
+                }
+            }
+
+        function populateDropdowns(data) {
+            const PDropdown = document.getElementById('P-dropdown');
+            const BDropdown = document.getElementById('B-dropdown');
+            const INVDropdown = document.getElementById('INV-dropdown');
+            const SCBDropdown = document.getElementById('SCB-dropdown');
+            const STRDropdown = document.getElementById('STR-dropdown');
+            const MDropdown = document.getElementById('M-dropdown');
+            const RoboDropdown = document.getElementById('Robo-dropdown');
+
+            var Ps = new Set();
+            var Bs = new Set();
+            var INVs = new Set();
+            var SCBs = new Set();
+            var STRs = new Set();
+            var Ms = new Set();
+            var Robos = new Set();
+
+            data.features.forEach(feature => {
+                if (feature.properties.phase) Ps.add(feature.properties.phase);
+                if (feature.properties.B) Bs.add(feature.properties.B);
+                if (feature.properties.INV) INVs.add(feature.properties.INV);
+                if (feature.properties.SCB) SCBs.add(feature.properties.SCB);
+                if (feature.properties.STR) STRs.add(feature.properties.STR);
+                if (feature.properties.tkr_master) Ms.add(feature.properties.tkr_master);
+                if (feature.properties.robo_id) Robos.add(feature.properties.robo_id);
+            });
+
+            function data_sort(in_set){
+                const outArray = [...in_set]; 
+                outArray.sort((a, b) => a - b);
+                const sortedset = new Set(outArray);
+                return sortedset;
+            }
+            function customSort_robo(in_set) {
+                const arr = [...in_set];
+                return arr.sort((a, b) => {
+                    // Handle "-" characters by converting them to "0" for numeric comparison
+                    a = a.replace("-", "0");
+                    b = b.replace("-", "0");
+
+                    // Sort based on prefix first
+                    if (a.startsWith("Auto") && b.startsWith("Semi")) {
+                        return -1;
+                    } else if (a.startsWith("Semi") && b.startsWith("Auto")) {
+                        return 1;
+                    }
+
+                    // Sort based on numeric suffix if prefixes are the same
+                    const aNumber = parseInt(a.match(/\d+/)[0]);
+                    const bNumber = parseInt(b.match(/\d+/)[0]);
+                    return aNumber - bNumber;
+                });
+            }
+            // Bs.sort((a, b) => a - b);
+            Ps = data_sort(Ps)
+            Ps.forEach(P => {
+                const option = document.createElement('option');
+                option.value = P;
+                option.textContent = P;
+                PDropdown.appendChild(option);
+            });
+            Bs = data_sort(Bs)
+            Bs.forEach(B => {
+                const option = document.createElement('option');
+                option.value = B;
+                option.textContent = B;
+                BDropdown.appendChild(option);
+            });
+            INVs = data_sort(INVs)
+            INVs.forEach(INV => {
+                const option = document.createElement('option');
+                option.value = INV;
+                option.textContent = INV;
+                INVDropdown.appendChild(option);
+            });
+            SCBs = data_sort(SCBs)
+            SCBs.forEach(SCB => {
+                const option = document.createElement('option');
+                option.value = SCB;
+                option.textContent = SCB;
+                SCBDropdown.appendChild(option);
+            });
+            STRs = data_sort(STRs)
+            STRs.forEach(STR => {
+                const option = document.createElement('option');
+                option.value = STR;
+                option.textContent = STR;
+                STRDropdown.appendChild(option);
+            });
+            Ms = data_sort(Ms)
+            Ms.forEach(M => {
+                const option = document.createElement('option');
+                option.value = M;
+                option.textContent = M;
+                MDropdown.appendChild(option);
+            });
+            Robos = customSort_robo(Robos)
+            Robos.forEach(Robo => {
+                const option = document.createElement('option');
+                option.value = Robo;
+                option.textContent = Robo;
+                RoboDropdown.appendChild(option);
+            });
+        }
+
+        
+        function filterPolygons() {
+            console.log('DROPDOWN STATUS :', dropdown_status);
+            const Ps = dropdown_status['P'];
+            const Bs = dropdown_status['B'];
+            const INVs = dropdown_status['INV'];
+            const SCBs = dropdown_status['SCB'];
+            const STRs = dropdown_status['STR'];
+            const Ms = dropdown_status['M'];
+            const Robos = dropdown_status['Robo'];
+            
+            let selectedFeatures = {}
+            if(Ps!=='' ||Bs!=='' || INVs!=='' || SCBs!=='' || STRs!==''|| Ms!=='' || Robos!==''){
+                selectedFeatures = geoJsonData_tables.features;
+                if (Ps) {
+                    selectedFeatures = selectedFeatures.filter(f => String(f.properties.phase) === Ps);
+                }
+
+                if (Bs) {
+                    selectedFeatures = selectedFeatures.filter(f => f.properties.B === Bs);
+                }
+
+                if (INVs) {
+                    selectedFeatures = selectedFeatures.filter(f => f.properties.INV === INVs);
+                }
+
+                if (SCBs) {
+                    selectedFeatures = selectedFeatures.filter(f => f.properties.SCB === SCBs);
+                }
+                if (STRs) {
+                    selectedFeatures = selectedFeatures.filter(f => f.properties.STR === STRs);
+                }
+                if (Ms) {
+                    selectedFeatures = selectedFeatures.filter(f => ''+f.properties.tkr_master === Ms);
+                }
+                // if (Robos) {
+                //     selectedFeatures = selectedFeatures.filter(f => ''+f.properties.robo_id === Robos);
+                // }
+                if (Robos && Array.isArray(Robos)) {
+                    selectedFeatures = selectedFeatures.filter(f => Robos.includes('' + f.properties.robo_id));
+                }
+
+
+                if (selectedFeatures.length > 0) {
+                    // change_status_text(`Selected Tables: ${selectedFeatures.length}`)
+                    change_status_text(`Tables: ${selectedFeatures.length} (Str: ${countUniqueStrIds(selectedFeatures)}, MdCount: ${calculateModuleCount(selectedFeatures)})`)
+                    // Combine the bounds of all selected features asynchronously
+                    const combineBoundsAsync = async () => {
+                        const combinedBounds = new mapboxgl.LngLatBounds();
+                        for (let i = 0; i < selectedFeatures.length; i++) {
+                            const feature = selectedFeatures[i];
+                            const coordinates = feature.geometry.coordinates[0][0];
+                            const featureBounds = coordinates.reduce((bounds, coord) => {
+                                return bounds.extend(coord);
+                            }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+
+                            combinedBounds.extend(featureBounds);
+
+                            // Yield to the browser to avoid blocking the UI
+                            if (i % 10 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+                        }
+                        return combinedBounds;
+                    };
+
+                    // Fit map to combined bounds
+                    combineBoundsAsync().then(combinedBounds => {
+                        map.fitBounds(combinedBounds, { padding: 50 });
+                    });
+
+                    // Update paint property for selected features asynchronously
+                    const updatePaintPropertyAsync = async () => {
+                        const paintProperty = [
+                            'case',
+                            ...selectedFeatures.flatMap(feature => [
+                                ['==', ['get', 'eq_id'], feature.properties.eq_id],
+                                '#ff0000'
+                            ]),
+                            default_table_color || '#3a95dc'
+                        ];
+
+                        map.setPaintProperty('shapefile-layer_tables', 'fill-color', paintProperty);
+                    };
+
+                    updatePaintPropertyAsync();
+    // }        
+                Filtered_Features = selectedFeatures
+                CurrentSeleFeatures = selectedFeatures
+                if (selectedFeatures.length === 1){
+                    selectedFeatures.forEach(feature => {
+                        const coordinates = feature.geometry.coordinates[0][0];
+                        const bounds = coordinates.reduce((bounds, coord) => {
+                            return bounds.extend(coord);
+                        }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+
+                        const properties = feature.properties;
+                        new mapboxgl.Popup()
+                            .setLngLat(bounds.getCenter())
+                            // .setHTML(`<strong>Phase: </strong> ${properties.phase}<br /><strong>Str ID: </strong> ${properties.str_id}<br /><strong>Row-Col: </strong> ${properties.row_col}<br /><strong>Node ID:</strong> ${properties.node_id}`)
+                            .setHTML(popup_design_complete(properties))
+                            .addTo(map);
+                    });
+                }
+                } else {
+                    alert('No matching Table found');
+                    change_status_text('No Matching')
+                }
+            }
+            else{
+                map.setPaintProperty('shapefile-layer_tables', 'fill-color', default_table_color)
+                change_status_text('Selected Tables: 0')
+            }
+
+            // if (selectedFeatures.length > 0) {
+            //     // console.log(selectedFeatures)
+            //     // Combine the bounds of all selected features
+            //     const combinedBounds = selectedFeatures.reduce((bounds, feature) => {
+            //         const coordinates = feature.geometry.coordinates[0][0];
+            //         const featureBounds = coordinates.reduce((bounds, coord) => {
+            //             return bounds.extend(coord);
+            //         }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+            //         return bounds.extend(featureBounds);
+            //     }, new mapboxgl.LngLatBounds());
+
+            //     // Fit map to combined bounds
+            //     map.fitBounds(combinedBounds, {
+            //         padding: 50
+            //     });
+
+            //     // Update paint property for selected features
+            //     map.setPaintProperty('shapefile-layer_tables', 'fill-color', [
+            //         'case',
+            //         ...selectedFeatures.flatMap(feature => [
+            //             ['==', ['get', 'str_id'], feature.properties.str_id],
+            //             '#ff0000'
+            //         ]),
+            //         default_table_color || '#3a95dc'
+            //     ]);
+            
+        }
+        var dropdown_status = {'P':'', 'B':'','INV':'','SCB':'','STR':'','M':'', 'Robo':''}
+        document.getElementById('P-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
+            dropdown_status["P"] = e.target.value;
+            if (e.target.value != ''){ filterPolygons();}
+        });
+
+        document.getElementById('B-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
+            dropdown_status["B"] = e.target.value;
+            filterPolygons();
+        });
+
+        document.getElementById('INV-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
+            dropdown_status["INV"] = e.target.value;
+            filterPolygons();
+        });
+
+        document.getElementById('SCB-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
+            dropdown_status["SCB"] = e.target.value;
+            filterPolygons();
+        });
+
+        document.getElementById('STR-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
+            dropdown_status["STR"] = e.target.value;
+            filterPolygons();
+        });
+        document.getElementById('M-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
+            dropdown_status["M"] = e.target.value;
+            filterPolygons();
+        });
+        document.getElementById('Robo-dropdown').addEventListener('change', function() {
+            const selectedOptions = Array.from(this.selectedOptions);
+            dropdown_status["Robo"] = selectedOptions.map(option => option.value);
+            filterPolygons();
+        });
+            
+    </script>
+</body>
+</html>
