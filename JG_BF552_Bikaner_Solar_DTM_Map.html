@@ -352,7 +352,8 @@
         <label><input type="radio" name="options" value="Option 2" onclick="logOptionHighlight(this)"> Highlight Master</label>
     </div>
     <div class="radio-buttons" id="radioButtons-info">
-        <label><input type="radio" name="options" value="Option 1" onclick="logOptionInfo(this)"> Robo-Table Count</label>
+        <label><input type="radio" name="options" value="Option 0" onclick="logOptionInfo(this)"> Robo-Table Count F1</label>
+        <label><input type="radio" name="options" value="Option 1" onclick="logOptionInfo(this)"> Robo-Module Count F1</label>
         <label><input type="radio" name="options" value="Option 2" onclick="logOptionInfo(this)"> Robo-Table Count F2</label>
         <label><input type="radio" name="options" value="Option 3" onclick="logOptionInfo(this)"> Robo-Table Count F3</label>
     </div>
@@ -1097,8 +1098,12 @@
             }
         function logOptionInfo(radio) {
                 console.log('Selected option:', radio.value);
-                if(radio.value === 'Option 1'){
+                if(radio.value === 'Option 0'){
                     generateRoboCountTable(CurrentSeleFeatures); // Generate table with data
+                    document.getElementById('featureTableContainer').style.display = 'block';
+                }
+                if(radio.value === 'Option 1'){
+                    generateRoboCountModule_F1(CurrentSeleFeatures); // Generate table with data
                     document.getElementById('featureTableContainer').style.display = 'block';
                 }
                 if(radio.value === 'Option 2'){
@@ -1256,6 +1261,87 @@
                 });
 
                 tbody.appendChild(tr);
+            });
+        }
+        function generateRoboCountModule_F1(features) {
+            const table = document.getElementById('featureTable');
+            const thead = table.querySelector('thead tr');
+            const tbody = table.querySelector('tbody');
+
+            // Create a map to group the features by robo_id and B-INV combination
+            const featureMap = {};
+            const columnSet = new Set();
+
+            features.forEach(feature => {
+            const { robo_id, B, INV, md_count } = feature.properties;
+            const columnKey = `B${B}-I${INV}`;
+
+            // Add column to the set (to track unique B-INV combinations)
+            columnSet.add(columnKey);
+
+            // Initialize feature map for the robo_id if not already present
+            if (!featureMap[robo_id]) {
+                featureMap[robo_id] = {};
+            }
+
+            // Initialize the count for the B-INV combination
+            if (!featureMap[robo_id][columnKey]) {
+                featureMap[robo_id][columnKey] = 0;
+            }
+
+            // Increment the module count for the B-INV combination
+            featureMap[robo_id][columnKey] += md_count || 0;
+            });
+
+            // Helper function to sort B-INV headers
+            function sortHeaders(a, b) {
+            const [aB, aI] = a.match(/\d+/g).map(Number);  // Extract numbers from Bx-Iy
+            const [bB, bI] = b.match(/\d+/g).map(Number);
+            return aB - bB || aI - bI;  // Sort by B first, then by INV
+            }
+
+            // Helper function to sort robo_id (Auto1, Semi2, etc.)
+            function sortRoboId(a, b) {
+            const aPrefix = a.match(/[A-Za-z]+/)[0];  // Extract the prefix (Auto, Semi, etc.)
+            const bPrefix = b.match(/[A-Za-z]+/)[0];
+            const aNum = parseInt(a.match(/\d+/)[0]);  // Extract the numeric part
+            const bNum = parseInt(b.match(/\d+/)[0]);
+
+            // Sort first by prefix alphabetically, then by the numeric part
+            if (aPrefix === bPrefix) {
+                return aNum - bNum;
+            } else {
+                return aPrefix.localeCompare(bPrefix);
+            }
+            }
+
+            // Clear the table before adding new content
+            thead.innerHTML = '<th>Robo ID</th>';
+            tbody.innerHTML = '';
+
+            // Sort the columns (B-INV combinations) before adding to the table
+            const columns = Array.from(columnSet).sort(sortHeaders);
+            columns.forEach(column => {
+            const th = document.createElement('th');
+            th.textContent = column;
+            thead.appendChild(th);
+            });
+
+            // Sort the robo_ids and add rows to the table
+            Object.keys(featureMap).sort(sortRoboId).forEach(robo_id => {
+            const tr = document.createElement('tr');
+            const tdRoboId = document.createElement('td');
+            tdRoboId.textContent = robo_id;
+            tr.appendChild(tdRoboId);
+
+            // Add module counts for each B-INV combination
+            columns.forEach(column => {
+                const td = document.createElement('td');
+                td.textContent = featureMap[robo_id][column] || 0;
+                tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
             });
         }
         function generateRoboCountTable_format2(features) {
@@ -1621,20 +1707,16 @@
             function customSort_robo(in_set) {
                 const arr = [...in_set];
                 return arr.sort((a, b) => {
-                    // Handle "-" characters by converting them to "0" for numeric comparison
-                    a = a.replace("-", "0");
-                    b = b.replace("-", "0");
+                    const aPrefix = a.charAt(0);
+                    const bPrefix = b.charAt(0);
+                    const aNumber = parseInt(a.slice(1));
+                    const bNumber = parseInt(b.slice(1));
 
-                    // Sort based on prefix first
-                    if (a.startsWith("Auto") && b.startsWith("Semi")) {
-                        return -1;
-                    } else if (a.startsWith("Semi") && b.startsWith("Auto")) {
-                        return 1;
-                    }
+                    // Sort based on prefix first (A before S)
+                    if (aPrefix < bPrefix) return -1;
+                    if (aPrefix > bPrefix) return 1;
 
-                    // Sort based on numeric suffix if prefixes are the same
-                    const aNumber = parseInt(a.match(/\d+/)[0]);
-                    const bNumber = parseInt(b.match(/\d+/)[0]);
+                    // If prefixes are the same, sort based on numeric suffix
                     return aNumber - bNumber;
                 });
             }
