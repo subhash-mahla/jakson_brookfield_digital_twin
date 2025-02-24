@@ -11,8 +11,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 11",
-                "Phase": 1,
+                "tkr_master": "11",
+                "phase": 1,
                 "X": 266,
                 "Y": 657
             },
@@ -27,8 +27,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 4",
-                "Phase": 1,
+                "tkr_master": "4",
+                "phase": 1,
                 "X": 263,
                 "Y": 286
             },
@@ -43,8 +43,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 16",
-                "Phase": 1,
+                "tkr_master": "16",
+                "phase": 1,
                 "X": 730,
                 "Y": 848
             },
@@ -59,8 +59,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 17",
-                "Phase": 1,
+                "tkr_master": "17",
+                "phase": 1,
                 "X": 838,
                 "Y": 795
             },
@@ -75,8 +75,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 13",
-                "Phase": 1,
+                "tkr_master": "13",
+                "phase": 1,
                 "X": 264,
                 "Y": 750
             },
@@ -91,8 +91,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 15",
-                "Phase": 1,
+                "tkr_master": "15",
+                "phase": 1,
                 "X": 571,
                 "Y": 869
             },
@@ -107,8 +107,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 12",
-                "Phase": 1,
+                "tkr_master": "12",
+                "phase": 1,
                 "X": 181,
                 "Y": 715
             },
@@ -123,8 +123,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 2",
-                "Phase": 1,
+                "tkr_master": "2",
+                "phase": 1,
                 "X": 156,
                 "Y": 197
             },
@@ -139,8 +139,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 1",
-                "Phase": 1,
+                "tkr_master": "1",
+                "phase": 1,
                 "X": 59,
                 "Y": 200
             },
@@ -155,8 +155,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 9",
-                "Phase": 1,
+                "tkr_master": "9",
+                "phase": 1,
                 "X": 144,
                 "Y": 453
             },
@@ -171,8 +171,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 7",
-                "Phase": 1,
+                "tkr_master": "7",
+                "phase": 1,
                 "X": 262,
                 "Y": 491
             },
@@ -187,8 +187,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 8",
-                "Phase": 1,
+                "tkr_master": "8",
+                "phase": 1,
                 "X": 263,
                 "Y": 584
             },
@@ -203,8 +203,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 10",
-                "Phase": 1,
+                "tkr_master": "10",
+                "phase": 1,
                 "X": 135,
                 "Y": 602
             },
@@ -219,8 +219,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 18",
-                "Phase": 1,
+                "tkr_master": "18",
+                "phase": 1,
                 "X": 932,
                 "Y": 795
             },
@@ -235,8 +235,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 6",
-                "Phase": 1,
+                "tkr_master": "6",
+                "phase": 1,
                 "X": 267,
                 "Y": 415
             },
@@ -251,8 +251,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 3",
-                "Phase": 1,
+                "tkr_master": "3",
+                "phase": 1,
                 "X": 250,
                 "Y": 193
             },
@@ -267,8 +267,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 14",
-                "Phase": 1,
+                "tkr_master": "14",
+                "phase": 1,
                 "X": 371,
                 "Y": 813
             },
@@ -283,8 +283,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 5",
-                "Phase": 1,
+                "tkr_master": "5",
+                "phase": 1,
                 "X": 250,
                 "Y": 360
             },
@@ -299,8 +299,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 2",
-                "Phase": 2,
+                "tkr_master": "2",
+                "phase": 2,
                 "X": 640,
                 "Y": 752
             },
@@ -315,8 +315,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 5",
-                "Phase": 2,
+                "tkr_master": "5",
+                "phase": 2,
                 "X": 402,
                 "Y": 509
             },
@@ -331,8 +331,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 4",
-                "Phase": 2,
+                "tkr_master": "4",
+                "phase": 2,
                 "X": 397,
                 "Y": 614
             },
@@ -347,8 +347,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 6",
-                "Phase": 2,
+                "tkr_master": "6",
+                "phase": 2,
                 "X": 662,
                 "Y": 548
             },
@@ -363,8 +363,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 3",
-                "Phase": 2,
+                "tkr_master": "3",
+                "phase": 2,
                 "X": 665,
                 "Y": 645
             },
@@ -379,8 +379,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 7",
-                "Phase": 2,
+                "tkr_master": "7",
+                "phase": 2,
                 "X": 391,
                 "Y": 398
             },
@@ -395,8 +395,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 14",
-                "Phase": 2,
+                "tkr_master": "14",
+                "phase": 2,
                 "X": 841,
                 "Y": 289
             },
@@ -411,8 +411,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 13",
-                "Phase": 2,
+                "tkr_master": "13",
+                "phase": 2,
                 "X": 819,
                 "Y": 371
             },
@@ -427,8 +427,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 1",
-                "Phase": 2,
+                "tkr_master": "1",
+                "phase": 2,
                 "X": 511,
                 "Y": 751
             },
@@ -443,8 +443,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 10",
-                "Phase": 2,
+                "tkr_master": "10",
+                "phase": 2,
                 "X": 381,
                 "Y": 290
             },
@@ -459,8 +459,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 11",
-                "Phase": 2,
+                "tkr_master": "11",
+                "phase": 2,
                 "X": 598,
                 "Y": 415
             },
@@ -475,8 +475,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 12",
-                "Phase": 2,
+                "tkr_master": "12",
+                "phase": 2,
                 "X": 662,
                 "Y": 427
             },
@@ -491,8 +491,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 9",
-                "Phase": 2,
+                "tkr_master": "9",
+                "phase": 2,
                 "X": 181,
                 "Y": 425
             },
@@ -507,8 +507,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 8",
-                "Phase": 2,
+                "tkr_master": "8",
+                "phase": 2,
                 "X": 156,
                 "Y": 506
             },
@@ -523,8 +523,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 1",
-                "Phase": 3,
+                "tkr_master": "1",
+                "phase": 3,
                 "X": 699,
                 "Y": 777
             },
@@ -539,8 +539,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 3",
-                "Phase": 3,
+                "tkr_master": "3",
+                "phase": 3,
                 "X": 377,
                 "Y": 836
             },
@@ -555,8 +555,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 2",
-                "Phase": 3,
+                "tkr_master": "2",
+                "phase": 3,
                 "X": 384,
                 "Y": 861
             },
@@ -571,8 +571,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 6",
-                "Phase": 3,
+                "tkr_master": "6",
+                "phase": 3,
                 "X": 274,
                 "Y": 179
             },
@@ -587,8 +587,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 4",
-                "Phase": 3,
+                "tkr_master": "4",
+                "phase": 3,
                 "X": 376,
                 "Y": 618
             },
@@ -603,8 +603,8 @@
         {
             "type": "Feature",
             "properties": {
-                "Master Name": "Master 5",
-                "Phase": 3,
+                "tkr_master": "5",
+                "phase": 3,
                 "X": 371,
                 "Y": 355
             },
