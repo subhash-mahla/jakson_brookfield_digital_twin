@@ -380,6 +380,7 @@
         const table_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_final_layout_complete_V21.geojson';
         const icr_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_icrs_V3.geojson';
         const road_map_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/brookfield_road_map_V3.geojson';
+        const masters_geojson_url = 'https://subhash-mahla.github.io/jakson_brookfield_digital_twin/Brookfield P1-2-3 masters locations_V1.geojson';
         mapboxgl.accessToken = 'pk.eyJ1Ijoic3ViaGFzaDU0IiwiYSI6ImNseGx1Y3JyMDAyMDcya3M2ZHpxdHFsN28ifQ.knRGnsgFrZMb-_gUb0dQdA';
         const icr_color_json = {
                         "ICR1": "#FF0000",
@@ -502,7 +503,12 @@
             .then(data => {
                 geoJsonData_road_map = data;
             });
-            
+        let geoJsonData_masters;
+        fetch(masters_geojson_url)
+            .then(response => response.json())
+            .then(data => {
+                geoJsonData_masters = data;
+            });
         // Add live location tracking
         let userMarker;
         let watchId;
@@ -577,26 +583,7 @@
 
         
         map.on('load', () => {
-            map.addSource('roadmap', {
-                'type': 'geojson',
-                'data': geoJsonData_road_map
-            });
-
-            map.addLayer({
-                'id': 'roadmap-layer',
-                'type': 'line',
-                'source': 'roadmap',
-                'layout': {
-                    'line-join': 'round',
-                    'line-cap': 'round'
-                },
-                'paint': {
-                    // 'line-color': '#ff0000',
-                    'line-color': '#565773', // Change this for desired color
-                    'line-width': 5, // Change this for desired line width
-                    'line-opacity': 1 // Change this for desired opacity (0-1)
-                }
-            });
+            
             map.addSource('shapefile-source_tables', {
                 'type': 'geojson',
                 'data': table_geojson_url
@@ -604,6 +591,10 @@
             map.addSource('shapefile-icr', {
                 'type': 'geojson',
                 'data': icr_geojson_url
+            });
+            map.addSource('shapefile-master', {
+                'type': 'geojson',
+                'data': masters_geojson_url
             });
 
             map.addLayer({
@@ -719,6 +710,106 @@
                 }
             });
 
+            
+
+
+            map.on('click', 'shapefile-layer_icr', (e) => {
+                const coordinates = e.lngLat;
+                const properties = e.features[0].properties;
+                new mapboxgl.Popup()
+                    .setLngLat(coordinates)
+                    .setHTML(`<br /><strong>ICR :</strong> ${properties.icr}`)
+                    .addTo(map);
+                if (userMarker) {
+                            directions.setOrigin(userMarker.getLngLat());
+                            directions.setDestination(coordinates);
+                            map.addControl(directions, 'top-left');
+                        }
+            });
+
+            map.addLayer({
+                'id': 'shapefile-layer_master',
+                'type': 'circle',
+                'source': 'shapefile-master',
+                'layout': {},
+                'paint': {
+                    'circle-color': '#E74C3C',
+                    'circle-radius': 7,
+                    'circle-opacity': 0.8
+                }
+            });
+            function highlight_master_i() {
+                const features = geoJsonData_masters.features;
+                const paintExpression = ['case'];
+
+                features.forEach((feature) => {
+                    const master = "M" + feature.properties.tkr_master;
+                    const master_color = master_color_json[master] !== undefined ? master_color_json[master] : default_icr_color;
+                    // console.log (master, master_color)
+                    paintExpression.push(
+                        ['==', ['get', 'tkr_master'], feature.properties.tkr_master],
+                        master_color
+                    );
+                });
+
+                paintExpression.push('#000000'); // Default color if no matches
+
+                map.setPaintProperty('shapefile-layer_master', 'circle-color', paintExpression);
+            }
+            highlight_master_i()
+            map.addLayer({
+                'id': 'outline_master',
+                'type': 'line',
+                'source': 'shapefile-master',
+                'layout': {},
+                'paint': {
+                    'line-color': '#000',
+                    'line-width': 1
+                }
+            }, 'shapefile-layer_master');
+            map.addLayer({
+                'id': 'label-master',
+                'type': 'symbol',
+                'source': 'shapefile-master',
+                'layout': {
+                    'text-field': [
+                                'format',
+                                    ['case',
+                                        ['==', ['get', 'tkr_master'], ''], 
+                                        '', 
+                                        'Master '
+                                    ],
+                                    {},
+                                    ['get', 'tkr_master'],
+                                    {}
+                    ],
+                    'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                    'text-size': 10,
+                    'text-offset': [0, 0], // Adjust the text position
+                    'text-justify': 'auto',
+                    'text-anchor': 'top'
+                },
+                'paint': {
+                    'text-color': '#c5df03', // Inner text color (yellow)
+                    'text-halo-color': '#000000', // Outer line color (black)
+                    'text-halo-width': 0.5, // Width of the outer line
+                    'text-halo-blur': 0 // Halo blur
+                }
+            });
+
+            map.on('click', 'shapefile-layer_master', (e) => {
+                const coordinates = e.lngLat;
+                const properties = e.features[0].properties;
+                new mapboxgl.Popup()
+                    .setLngLat(coordinates)
+                    .setHTML(`<br /><strong>Master :</strong> ${properties.tkr_master}`)
+                    .addTo(map);
+            });
+
+            map.on('mouseenter', 'shapefile-layer_master', () => {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+
             // Add a symbol layer for text labels
             map.addLayer({
                 'id': 'label-icr',
@@ -751,23 +842,27 @@
                     'text-halo-blur': 0 // Halo blur
                 }
             });
-
-
-            map.on('click', 'shapefile-layer_icr', (e) => {
-                const coordinates = e.lngLat;
-                const properties = e.features[0].properties;
-                new mapboxgl.Popup()
-                    .setLngLat(coordinates)
-                    .setHTML(`<br /><strong>ICR :</strong> ${properties.icr}`)
-                    .addTo(map);
-                if (userMarker) {
-                            directions.setOrigin(userMarker.getLngLat());
-                            directions.setDestination(coordinates);
-                            map.addControl(directions, 'top-left');
-                        }
-            });
             // console.log(geoJsonData_road_map);
-            
+            map.addSource('roadmap', {
+                'type': 'geojson',
+                'data': geoJsonData_road_map
+            });
+
+            map.addLayer({
+                'id': 'roadmap-layer',
+                'type': 'line',
+                'source': 'roadmap',
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    // 'line-color': '#ff0000',
+                    'line-color': '#565773', // Change this for desired color
+                    'line-width': 5, // Change this for desired line width
+                    'line-opacity': 1 // Change this for desired opacity (0-1)
+                }
+            });
 
             populateDropdowns(geoJsonData_tables);
             function popup_design_complete(properties) {
