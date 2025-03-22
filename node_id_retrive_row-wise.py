@@ -4,14 +4,14 @@ import pyperclip
 import pandas as pd
 import math
 
-def get_prop_value(features, row, col, prop_name, phase = 1):
+def get_prop_value(features, row, col, prop_name, phase ):
         # phase_features = [f for f in features if (str(f['properties']['phase']) == str(phase))]
         # print(f'p features : {len(phase_features)}')
         # col_features = [f for f in phase_features if (str(f['properties']['col']) == str(col))]
         # print(f'c features : {len(col_features)}')
         # row_features = [f for f in col_features if (str(f['properties']['row']) == str(row))]
         # print(f'r features : {len(row_features)}')
-        matching_feature = [f for f in features if f['properties']['row'] == str(row) and f['properties']['col'] == str(col) and (str(f['properties']['phase']) == str(phase))]
+        matching_feature = [f for f in features if int(f['properties']['row']) == int(row) and int(f['properties']['col']) == int(col) and (int(f['properties']['phase']) == int(phase))]
         # print(matching_feature)
         if not matching_feature:
             return None
@@ -50,14 +50,14 @@ def fetch_node_in_robo(in_json_data):
                 for r in robo_data.iterrows():
                     if not math.isnan(r[1]['col']):
                         col = int(r[1]['col'])
-                        start_row = r[1]['start_row']
-                        end_row = r[1]['end_row']
+                        start_row = int(r[1]['start_row'])
+                        end_row = int(r[1]['end_row'])
                         node_data = ''
                         error_data = ''
                         table_count = 0
                         for row_index in range(int(start_row), int(end_row+1), 1):
-                            m = get_prop_value(features, row=row_index, col=col, prop_name='tkr_master')
-                            node = get_prop_value(features, row=row_index, col=col, prop_name='node_id')
+                            m = get_prop_value(features, row=row_index, col=col, prop_name='tkr_master', phase=2)
+                            node = get_prop_value(features, row=row_index, col=col, prop_name='node_id', phase=2)
                             if not m == None or not node == None: 
                                 node_data += f'M{m}-{node},'
                                 table_count += 1
@@ -84,8 +84,8 @@ def add_update_robo_data(geojson_data, xlsx_path, output_geojson_path):
     for _, row in df.iterrows():
         # row_value = row['row']
         col_value = int(row['col'])
-        start_row = row['start_row']
-        end_row = row['end_row']
+        start_row = int(row['start_row'])
+        end_row = int(row['end_row'])
         robo_id = row['robo_id']
         # node_id_value = row['node_id']
         
@@ -93,11 +93,11 @@ def add_update_robo_data(geojson_data, xlsx_path, output_geojson_path):
             # Find matching feature in the GeoJSON
             feature_matched = False
             for feature in geojson_data['features']:
-                feature_row = feature['properties'].get('row')
-                feature_col = feature['properties'].get('col')
-                feature_phase = feature['properties'].get('phase')
+                feature_row = int(feature['properties'].get('row'))
+                feature_col = int(feature['properties'].get('col'))
+                feature_phase = int(feature['properties'].get('phase'))
                 
-                if int(feature_row) == row_value and int(feature_col) == col_value and feature_phase == 1:
+                if int(feature_row) == row_value and int(feature_col) == col_value and feature_phase == 2:
                     # Add or update the 'node_id' property
                     feature['properties']['robo_id'] = robo_id
                     feature_matched = True
@@ -171,7 +171,7 @@ def main():
         [sg.Text('Total Tkr:', size=(10, 1)), sg.Text('', key='-T_COL-'), sg.Text('Current Tkr:', size=(10, 1)), sg.Text('', key='-C_COL-'), sg.Text('Remaining Tkr:', size=(10, 1)), sg.Text('', key='-R_COL-')],
         [sg.Text('Node ID:', size=(10, 1)), sg.Text('', key='-NODE_ID-')],
         [sg.Button('Previous', key='-PREV-', disabled=True, expand_x=True, size=(10, 3)), sg.Button('Next', key='-NEXT-', disabled=True, expand_x=True, size=(10, 3))],
-        [sg.Output(size=(60, 10))]
+        # [sg.Output(size=(60, 10))]
     ]
 
     window = sg.Window('GeoJSON Node ID Finder', layout)

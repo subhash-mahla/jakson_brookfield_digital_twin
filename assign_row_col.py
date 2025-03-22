@@ -4,14 +4,17 @@ from osgeo import ogr, osr
 from osgeo import gdal
 from tqdm import tqdm
 import json
+import PySimpleGUI as sg
 
+
+Shapefile_have_row = False
 def Points_SortRowWise(pointsfiles, block, first_row:int, dis_bw_rows:float):
     global Shapefile_have_row
     Layout_Block = block
     for f in pointsfiles:
     # GIVE COLUMN ID
-        if Shapefile_have_row : df_cols = ['rack', 'lon', 'lat', 'panel', 'equip_name', 'equip_id', 'row']
-        else :df_cols = ['rack', 'lon', 'lat', 'panel', 'equip_name', 'equip_id']
+        if Shapefile_have_row : df_cols = ['lon', 'lat', 'id','row']
+        else :df_cols = ['lon', 'lat', 'id']
         df = pd.DataFrame(columns=df_cols)
         file = ogr.Open(f)
         shape = file.GetLayer(0)
@@ -22,14 +25,14 @@ def Points_SortRowWise(pointsfiles, block, first_row:int, dis_bw_rows:float):
             feature = shape_obj.GetFeature(i)
             first = feature.ExportToJson()
             data = json.loads(first)
-            rack = data['properties']['rack']
+            # rack = data['properties']['rack']
             # lon = data['geometry']['coordinates'][1]
             # lat = data['geometry']['coordinates'][0]
             lon = data['geometry']['coordinates'][0]
             lat = data['geometry']['coordinates'][1]
-            itype = str(data['properties']['panel'])
-            try:eq_name = str(data['properties']['equip_name'])
-            except: eq_name = ""
+            # itype = str(data['properties']['panel'])
+            # try:eq_name = str(data['properties']['equip_name'])
+            # except: eq_name = ""
             try:eq_id = str(data['properties']['equip_id'])
             except: eq_id = ""
             # plot = data['properties']['plot']
@@ -38,8 +41,8 @@ def Points_SortRowWise(pointsfiles, block, first_row:int, dis_bw_rows:float):
             # panel = data['properties']['panel']
             if Shapefile_have_row : 
                 row = int(data['properties']['row'])
-                rowList = [rack, lon, lat, itype, eq_name, eq_id, row]
-            else : rowList = [rack, lon, lat, itype, eq_name, eq_id]
+                rowList = [lon, lat, eq_id, row]
+            else : rowList = [lon, lat, eq_id]
             return rowList
         
         new_dict = {index : read_points(shape, index) for index in tqdm(range(len(shape)))}
@@ -81,7 +84,7 @@ def Points_SortRowWise(pointsfiles, block, first_row:int, dis_bw_rows:float):
         pre_row = 0
         rowscount = first_row
         dcount = 0
-        df_cols = ['rack', 'lon', 'lat', 'panel', 'equip_name', 'equip_id']
+        df_cols = ['lon', 'lat', 'id']
 
 
         print('Row Counting :')
@@ -90,12 +93,12 @@ def Points_SortRowWise(pointsfiles, block, first_row:int, dis_bw_rows:float):
                 rowscount = df.iloc[i, 6]
                 try:
                     temprows[rowscount].loc[len(temprows[rowscount])] = [df.iloc[i, 0],
-                                                    df.iloc[i, 1], df.iloc[i, 2], df.iloc[i, 3], df.iloc[i, 4], df.iloc[i, 5]]
+                                                    df.iloc[i, 1], df.iloc[i, 2]]
                 except:
                     temprows[rowscount] = pd.DataFrame(
                         columns=df_cols)
                     temprows[rowscount].loc[0] = [df.iloc[i, 0],
-                                                    df.iloc[i, 1], df.iloc[i, 2], df.iloc[i, 3], df.iloc[i, 4], df.iloc[i, 5]]
+                                                    df.iloc[i, 1], df.iloc[i, 2]]
                 # dcount += 1
                 # if i > 0 and df.iloc[i, 6] != df.iloc[i-1, 6]:
                 if pre_row != rowscount:
@@ -134,12 +137,12 @@ def Points_SortRowWise(pointsfiles, block, first_row:int, dis_bw_rows:float):
                 # if i >= 0 and i < int(df.shape[0])-1: ver_dis = -1 * (df.iloc[i+1, 2] - df.iloc[i, 2])
                 try:
                     temprows[rowscount].loc[dcount] = [df.iloc[i, 0],
-                                                    df.iloc[i, 1], df.iloc[i, 2], df.iloc[i, 3], df.iloc[i, 4], df.iloc[i, 5]]
+                                                    df.iloc[i, 1], df.iloc[i, 2]]
                 except:
                     temprows[rowscount] = pd.DataFrame(
                         columns=df_cols)
                     temprows[rowscount].loc[dcount] = [df.iloc[i, 0],
-                                                    df.iloc[i, 1], df.iloc[i, 2], df.iloc[i, 3], df.iloc[i, 4], df.iloc[i, 5]]
+                                                    df.iloc[i, 1], df.iloc[i, 2]]
                 dcount += 1
                 if i >= 0 and i < int(df.shape[0])-1:
                     # 0.00003:  # vertical distance
@@ -163,7 +166,7 @@ def Points_SortRowWise(pointsfiles, block, first_row:int, dis_bw_rows:float):
         # rowname = f"{strings_count}U"
         str_count = 1
         resultDf = pd.DataFrame(
-            columns=['rack', 'lon', 'lat', 'panel', 'equip_id', 'equip_name', 'block_bs', 'row', 'col', "col_id", 'string', 'str', 'rack_panel', 'key'])
+            columns=['lon', 'lat', 'id','row', 'col'])
             # columns=['equip_id', 'equip_name', 'rack_panel', 'block_bs', 'row', 'col', "col_id", 'key'])
         
         # current_table = None
@@ -292,3 +295,6 @@ def Points_SortRowWise(pointsfiles, block, first_row:int, dis_bw_rows:float):
         print(f"Total RP Dupli : {total_rp_dupli}")
         return output_csv
         # os.system("mpg123 " + "yay_sound.mp3")
+
+file = sg.popup_get_file('select shp file')
+Points_SortRowWise(pointsfiles=file, block=0, first_row=6, dis_bw_rows=0.000018)

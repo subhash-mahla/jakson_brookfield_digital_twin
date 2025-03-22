@@ -4,6 +4,8 @@ import geopandas as gpd
 def generate_unique_id():
     return str(uuid.uuid4())
 
+for i in range(5):
+    print(generate_unique_id())
     # Read the shapefile
 def assign_unique_id_to_polygons(shp_file_path):
     # Read the shapefile
