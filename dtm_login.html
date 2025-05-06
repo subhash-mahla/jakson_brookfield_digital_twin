@@ -2,9 +2,11 @@
 <html>
 <head>
     <title>Login Page</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth.js"></script>
-    <script>
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-auth.js";
+
         // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBEm7AMBqCgO2SPdQpoLsKECLO2aKzZJXA",
@@ -16,18 +18,19 @@
             appId: "1:298546323045:web:c127090cf056a33532308c",
             measurementId: "G-G1ZVSDZB0N"
         };
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
 
-        // Function to handle login
-        function login() {
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        window.login = function() {
             var email = document.getElementById('email').value;
             var password = document.getElementById('password').value;
 
-            firebase.auth().signInWithEmailAndPassword(email, password)
+            signInWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
                     // Redirect to next page
-                    window.location.href = "brookfield_mapbox.html";
+                    window.location.href = "https://subhash-mahla.github.io/jakson_brookfield_digital_twin/JG_BF552_Bikaner_Solar_DTM_Map_V2.html";
                 })
                 .catch((error) => {
                     var errorCode = error.code;
