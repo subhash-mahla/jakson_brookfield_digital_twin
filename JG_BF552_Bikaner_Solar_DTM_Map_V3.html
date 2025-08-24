@@ -281,11 +281,18 @@
         <select id="SCB-dropdown">
             <option value="">SCB</option>
         </select>
-
         <select id="STR-dropdown">
             <option value="">STR</option>
         </select>
-        <!-- <br /> -->
+        <br />
+        <select id="R-dropdown">
+            <option value="">R</option>
+        </select>
+        <select id="C-dropdown">
+            <option value="">C</option>
+        </select>
+
+        
         <select id="M-dropdown">
             <option value="">M</option>
         </select>
@@ -1861,6 +1868,8 @@
             const INVDropdown = document.getElementById('INV-dropdown');
             const SCBDropdown = document.getElementById('SCB-dropdown');
             const STRDropdown = document.getElementById('STR-dropdown');
+            const RDropdown = document.getElementById('R-dropdown');
+            const CDropdown = document.getElementById('C-dropdown');
             const MDropdown = document.getElementById('M-dropdown');
             const RoboDropdown = document.getElementById('Robo-dropdown');
 
@@ -1869,6 +1878,8 @@
             var INVs = new Set();
             var SCBs = new Set();
             var STRs = new Set();
+            var Rs = new Set();
+            var Cs = new Set();
             var Ms = new Set();
             var Robos = new Set();
 
@@ -1878,6 +1889,8 @@
                 if (feature.properties.INV) INVs.add(feature.properties.INV);
                 if (feature.properties.SCB) SCBs.add(feature.properties.SCB);
                 if (feature.properties.STR) STRs.add(feature.properties.STR);
+                if (feature.properties.row) Rs.add(feature.properties.row);
+                if (feature.properties.col) Cs.add(feature.properties.col);
                 if (feature.properties.tkr_master) Ms.add(feature.properties.tkr_master);
                 if (feature.properties.robo_id) Robos.add(feature.properties.robo_id);
             });
@@ -1940,6 +1953,20 @@
                 option.textContent = STR;
                 STRDropdown.appendChild(option);
             });
+            Rs = data_sort(Rs)
+            Rs.forEach(R => {
+                const option = document.createElement('option');
+                option.value = R;
+                option.textContent = R;
+                RDropdown.appendChild(option);
+            });
+            Cs = data_sort(Cs)
+            Cs.forEach(C => {
+                const option = document.createElement('option');
+                option.value = C;
+                option.textContent = C;
+                CDropdown.appendChild(option);
+            });
             Ms = data_sort(Ms)
             Ms.forEach(M => {
                 const option = document.createElement('option');
@@ -1964,11 +1991,13 @@
             const INVs = dropdown_status['INV'];
             const SCBs = dropdown_status['SCB'];
             const STRs = dropdown_status['STR'];
+            const Rs = dropdown_status['R'];
+            const Cs = dropdown_status['C'];
             const Ms = dropdown_status['M'];
             const Robos = dropdown_status['Robo'];
             
             let selectedFeatures = {}
-            if(Ps!=='' ||Bs!=='' || INVs!=='' || SCBs!=='' || STRs!==''|| Ms!=='' || Robos!==''){
+            if(Ps!=='' ||Bs!=='' || INVs!=='' || SCBs!=='' || STRs!==''|| Rs!=='' || Cs!=='' || Ms!=='' || Robos!==''){
                 selectedFeatures = geoJsonData_tables.features;
                 if (Ps) {
                     selectedFeatures = selectedFeatures.filter(f => String(f.properties.phase) === Ps);
@@ -1987,6 +2016,12 @@
                 }
                 if (STRs) {
                     selectedFeatures = selectedFeatures.filter(f => f.properties.STR === STRs);
+                }
+                if (Rs) {
+                    selectedFeatures = selectedFeatures.filter(f => f.properties.row === Rs);
+                }
+                if (Cs) {
+                    selectedFeatures = selectedFeatures.filter(f => f.properties.col === Cs);
                 }
                 if (Ms) {
                     selectedFeatures = selectedFeatures.filter(f => ''+f.properties.tkr_master === Ms);
@@ -2095,7 +2130,7 @@
             //     ]);
             
         }
-        var dropdown_status = {'P':'', 'B':'','INV':'','SCB':'','STR':'','M':'', 'Robo':''}
+        var dropdown_status = {'P':'', 'B':'','INV':'','SCB':'','STR':'','R':'','C':'','M':'', 'Robo':''}
         document.getElementById('P-dropdown').addEventListener('change', (e) => {
             change_status_text('Filtering ...')
             dropdown_status["P"] = e.target.value;
@@ -2123,6 +2158,16 @@
         document.getElementById('STR-dropdown').addEventListener('change', (e) => {
             change_status_text('Filtering ...')
             dropdown_status["STR"] = e.target.value;
+            filterPolygons();
+        });
+        document.getElementById('R-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
+            dropdown_status["R"] = e.target.value;
+            filterPolygons();
+        });
+        document.getElementById('C-dropdown').addEventListener('change', (e) => {
+            change_status_text('Filtering ...')
+            dropdown_status["C"] = e.target.value;
             filterPolygons();
         });
         document.getElementById('M-dropdown').addEventListener('change', (e) => {
